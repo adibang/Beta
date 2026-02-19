@@ -3156,10 +3156,35 @@
         }
 
         async function setAppUnlocked() {
-            const transaction = db.transaction([STORES.APP_STATE], 'readwrite');
-            const store = transaction.objectStore(STORES.APP_STATE);
-            store.put({ key: UNLOCKED_KEY, value: true });
-            appUnlocked = true;
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject(new Error('Database not initialized'));
+                    return;
+                }
+                const transaction = db.transaction([STORES.APP_STATE], 'readwrite');
+                const store = transaction.objectStore(STORES.APP_STATE);
+                const request = store.put({ key: UNLOCKED_KEY, value: true });
+        
+                request.onsuccess = () => {
+                    appUnlocked = true;
+                    console.log('App unlocked status saved');
+                    resolve();
+                };
+        
+                request.onerror = (event) => {
+                    console.error('Failed to save unlocked status:', event.target.error);
+                    reject(event.target.error);
+                };
+        
+                transaction.oncomplete = () => {
+                    console.log('Transaction completed');
+                };
+        
+                transaction.onerror = (event) => {
+                    console.error('Transaction error:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
         }
 
         // ==================== FUNGSI UNTUK MENAMPILKAN LOGIN OVERLAY ====================
