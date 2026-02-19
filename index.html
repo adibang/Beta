@@ -103,15 +103,45 @@
             padding: 20px 0;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 5px;
             overflow-y: auto;
             transition: left 0.3s ease;
         }
         .sidebar.open {
             left: 0;
         }
-        .sidebar button {
-            margin: 0 10px;
+        /* Style untuk grup menu */
+        .menu-group {
+            margin-bottom: 5px;
+        }
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 0 10px 5px;
+            font-weight: 700;
+            color: #006B54;
+            transition: background 0.2s;
+        }
+        .menu-header:hover {
+            background-color: #e0e0e0;
+        }
+        .menu-header .arrow {
+            transition: transform 0.2s;
+        }
+        .menu-header.open .arrow {
+            transform: rotate(90deg);
+        }
+        .sub-menu {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .sub-menu button {
+            margin: 5px 10px;
             padding: 12px 16px;
             border: 1px solid #006B54;
             border-radius: 15px;
@@ -123,23 +153,14 @@
             gap: 8px;
             cursor: pointer;
             transition: all 0.2s;
+            width: calc(100% - 20px);
         }
-        .sidebar button:hover {
+        .sub-menu button:hover {
             background: #f0f9f6;
         }
-        .sidebar button svg {
+        .sub-menu button svg {
             width: 18px;
             height: 18px;
-        }
-        .sidebar .menu-section {
-            margin: 0 10px;
-            padding: 8px 16px;
-            font-weight: 700;
-            color: #006B54;
-            border-bottom: 1px solid #d9d9d9;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
         }
         /* Drawer overlay */
         .drawer-overlay {
@@ -1245,143 +1266,192 @@
         </div>
     </header>
 
-    <!-- ==================== DRAWER SIDEBAR ==================== -->
+    <!-- ==================== DRAWER SIDEBAR (DENGAN SUBMENU) ==================== -->
     <div class="sidebar" id="sidebar">
-        <div class="menu-section">MASTER DATA KASIR</div>
-        <button onclick="openTambahItemKasirModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            <span>Tambah Item</span>
-        </button>
-        <button onclick="openDaftarItemKasirModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-            </svg>
-            <span>Daftar Item</span>
-        </button>
-        <button onclick="openTambahKategoriKasirModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            <span>Tambah Kategori</span>
-        </button>
-        <button onclick="openDaftarKategoriKasirModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-                <path d="M10 2v20"/>
-            </svg>
-            <span>Daftar Kategori</span>
-        </button>
-        <button onclick="openTambahSatuanModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            <span>Tambah Satuan</span>
-        </button>
-        <button onclick="openDaftarSatuanModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <line x1="3" y1="9" x2="21" y2="9"/>
-                <line x1="9" y1="21" x2="9" y2="9"/>
-            </svg>
-            <span>Daftar Satuan</span>
-        </button>
-        <div class="menu-section">TRANSAKSI</div>
-        <button onclick="openTransaksiPage(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
-                <line x1="2" y1="10" x2="22" y2="10"/>
-                <line x1="7" y1="15" x2="12" y2="15"/>
-            </svg>
-            <span>Transaksi Kasir</span>
-        </button>
+        <!-- Grup MASTER DATA KASIR -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">MASTER DATA KASIR</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openTambahItemKasirModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    <span>Tambah Item</span>
+                </button>
+                <button onclick="openDaftarItemKasirModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                    </svg>
+                    <span>Daftar Item</span>
+                </button>
+                <button onclick="openTambahKategoriKasirModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    <span>Tambah Kategori</span>
+                </button>
+                <button onclick="openDaftarKategoriKasirModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                        <path d="M10 2v20"/>
+                    </svg>
+                    <span>Daftar Kategori</span>
+                </button>
+                <button onclick="openTambahSatuanModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    <span>Tambah Satuan</span>
+                </button>
+                <button onclick="openDaftarSatuanModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="3" y1="9" x2="21" y2="9"/>
+                        <line x1="9" y1="21" x2="9" y2="9"/>
+                    </svg>
+                    <span>Daftar Satuan</span>
+                </button>
+            </div>
+        </div>
 
-        <div class="menu-section">PELANGGAN & PEMASOK</div>
-        <button onclick="openTambahCustomerModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4"/>
-                <path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
-            </svg>
-            <span>Tambah Pelanggan</span>
-        </button>
-        <button onclick="openDaftarCustomerModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4"/>
-                <path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
-                <rect x="2" y="2" width="20" height="20" rx="2" ry="2" stroke="currentColor" fill="none"/>
-            </svg>
-            <span>Daftar Pelanggan</span>
-        </button>
-        <button onclick="openTambahSupplierModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <circle cx="12" cy="12" r="2"/>
-            </svg>
-            <span>Tambah Supplier</span>
-        </button>
-        <button onclick="openDaftarSupplierModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <circle cx="12" cy="12" r="2"/>
-                <rect x="2" y="2" width="20" height="20" rx="2" ry="2" stroke="currentColor" fill="none"/>
-            </svg>
-            <span>Daftar Supplier</span>
-        </button>
+        <!-- Grup TRANSAKSI -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">TRANSAKSI</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openTransaksiPage(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                        <line x1="7" y1="15" x2="12" y2="15"/>
+                    </svg>
+                    <span>Transaksi Kasir</span>
+                </button>
+            </div>
+        </div>
 
-        <div class="menu-section">INVENTORY</div>
-        <button onclick="openInventoryStokModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                <line x1="12" y1="11" x2="12" y2="17"/>
-            </svg>
-            <span>Stok Barang</span>
-        </button>
-        <button onclick="openInventoryOpnameModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/>
-                <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
-            <span>Stok Opname</span>
-        </button>
-        <button onclick="openInventoryLaporanModal(); closeDrawer();">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            <span>Laporan Stok</span>
-        </button>
+        <!-- Grup PELANGGAN & PEMASOK -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">PELANGGAN & PEMASOK</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openTambahCustomerModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
+                    </svg>
+                    <span>Tambah Pelanggan</span>
+                </button>
+                <button onclick="openDaftarCustomerModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
+                        <rect x="2" y="2" width="20" height="20" rx="2" ry="2" stroke="currentColor" fill="none"/>
+                    </svg>
+                    <span>Daftar Pelanggan</span>
+                </button>
+                <button onclick="openTambahSupplierModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                    <span>Tambah Supplier</span>
+                </button>
+                <button onclick="openDaftarSupplierModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <rect x="2" y="2" width="20" height="20" rx="2" ry="2" stroke="currentColor" fill="none"/>
+                    </svg>
+                    <span>Daftar Supplier</span>
+                </button>
+            </div>
+        </div>
 
-        <div class="menu-section">LAPORAN</div>
-        <button onclick="openLaporanPage()">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            <span>Laporan Penjualan</span>
-        </button>
+        <!-- Grup INVENTORY -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">INVENTORY</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openInventoryStokModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        <line x1="12" y1="11" x2="12" y2="17"/>
+                    </svg>
+                    <span>Stok Barang</span>
+                </button>
+                <button onclick="openInventoryOpnameModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    <span>Stok Opname</span>
+                </button>
+                <button onclick="openInventoryLaporanModal(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Laporan Stok</span>
+                </button>
+            </div>
+        </div>
 
-        <div class="menu-section">PEMBELIAN</div>
-        <button onclick="openPembelianPage()">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-                <path d="M8 7h8M8 11h6M8 15h4"/>
-            </svg>
-            <span>Pembelian Barang</span>
-        </button>
+        <!-- Grup LAPORAN -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">LAPORAN</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openLaporanPage(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Laporan Penjualan</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Grup PEMBELIAN -->
+        <div class="menu-group">
+            <div class="menu-header" onclick="toggleSubMenu(this)">
+                <span class="menu-title">PEMBELIAN</span>
+                <span class="arrow">▶</span>
+            </div>
+            <div class="sub-menu">
+                <button onclick="openPembelianPage(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+                        <path d="M8 7h8M8 11h6M8 15h4"/>
+                    </svg>
+                    <span>Pembelian Barang</span>
+                </button>
+            </div>
+        </div>
     </div>
     <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 
@@ -2135,6 +2205,46 @@
     <div id="notification"></div>
 
     <script>
+        // ==================== FUNGSI UNTUK SUBMENU SIDEBAR ====================
+        function toggleSubMenu(header) {
+            const subMenu = header.nextElementSibling;
+            if (subMenu && subMenu.classList.contains('sub-menu')) {
+                // Sembunyikan semua submenu lain
+                document.querySelectorAll('.sub-menu').forEach(sm => sm.style.display = 'none');
+                // Hapus class open dari semua header
+                document.querySelectorAll('.menu-header').forEach(h => h.classList.remove('open'));
+
+                // Tampilkan submenu yang diklik jika sebelumnya tersembunyi
+                if (subMenu.style.display !== 'block') {
+                    subMenu.style.display = 'block';
+                    header.classList.add('open');
+                } else {
+                    subMenu.style.display = 'none';
+                }
+            }
+        }
+
+        function closeSubMenu(button) {
+            const subMenu = button.closest('.sub-menu');
+            if (subMenu) {
+                subMenu.style.display = 'none';
+                // Hapus class open dari header terkait
+                const header = subMenu.previousElementSibling;
+                if (header && header.classList.contains('menu-header')) {
+                    header.classList.remove('open');
+                }
+            }
+        }
+
+        // Modifikasi fungsi closeDrawer untuk menyembunyikan semua submenu
+        function closeDrawer() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('show');
+            // Sembunyikan semua submenu
+            document.querySelectorAll('.sub-menu').forEach(sm => sm.style.display = 'none');
+            document.querySelectorAll('.menu-header').forEach(h => h.classList.remove('open'));
+        }
+
         // ==================== AUDIO NOTIFICATION SYSTEM ====================
         let audioContext = null;
         let audioInitialized = false;
@@ -2396,57 +2506,91 @@
             overlay.classList.toggle('show');
         }
         
-        function closeDrawer() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('drawer-overlay').classList.remove('show');
+        // ==================== SETTINGS MODAL ====================
+        async function exportData() {
+            try {
+                showLoading();
+                const exportData = {
+                    kasirCategories: await dbGetAll(STORES.KASIR_CATEGORIES),
+                    kasirItems: await dbGetAll(STORES.KASIR_ITEMS),
+                    kasirSatuan: await dbGetAll(STORES.KASIR_SATUAN),
+                    customers: await dbGetAll(STORES.CUSTOMERS),
+                    suppliers: await dbGetAll(STORES.SUPPLIERS),
+                    pendingTransactions: await dbGetAll(STORES.PENDING_TRANSACTIONS),
+                    settings: await dbGetAll(STORES.SETTINGS),
+                    exportDate: new Date().toISOString(),
+                    version: DB_VERSION
+                };
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                const exportFileName = `pos-backup-${new Date().toISOString().split('T')[0]}.json`;
+                const link = document.createElement('a');
+                link.href = dataUri;
+                link.download = exportFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('Data berhasil dieksport!', 'success');
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification('Gagal mengeksport data: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         }
 
-        // ==================== SETTINGS MODAL ====================
-async function exportData() {
-    try {
-        showLoading();
-        const exportData = {
-            kasirCategories: await dbGetAll(STORES.KASIR_CATEGORIES),
-            kasirItems: await dbGetAll(STORES.KASIR_ITEMS),
-            kasirSatuan: await dbGetAll(STORES.KASIR_SATUAN),
-            customers: await dbGetAll(STORES.CUSTOMERS),
-            suppliers: await dbGetAll(STORES.SUPPLIERS),
-            pendingTransactions: await dbGetAll(STORES.PENDING_TRANSACTIONS),
-            settings: await dbGetAll(STORES.SETTINGS),
-            exportDate: new Date().toISOString(),
-            version: DB_VERSION
-        };
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        const exportFileName = `pos-backup-${new Date().toISOString().split('T')[0]}.json`;
-        const link = document.createElement('a');
-        link.href = dataUri;
-        link.download = exportFileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showNotification('Data berhasil dieksport!', 'success');
-    } catch (error) {
-        console.error('Error exporting data:', error);
-        showNotification('Gagal mengeksport data: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
+        async function importData() {
+            return new Promise((resolve) => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) { resolve(false); return; }
+                    showLoading();
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        try {
+                            const importedData = JSON.parse(event.target.result);
+                            await dbClear(STORES.KASIR_CATEGORIES);
+                            await dbClear(STORES.KASIR_ITEMS);
+                            await dbClear(STORES.KASIR_SATUAN);
+                            await dbClear(STORES.CUSTOMERS);
+                            await dbClear(STORES.SUPPLIERS);
+                            await dbClear(STORES.PENDING_TRANSACTIONS);
+                            await dbClear(STORES.SETTINGS);
+                            if (importedData.kasirCategories) for (const kc of importedData.kasirCategories) try { await dbAdd(STORES.KASIR_CATEGORIES, kc); } catch (error) { console.warn('Gagal mengimport kategori kasir:', kc, error); }
+                            if (importedData.kasirItems) for (const ki of importedData.kasirItems) try { await dbAdd(STORES.KASIR_ITEMS, ki); } catch (error) { console.warn('Gagal mengimport item kasir:', ki, error); }
+                            if (importedData.kasirSatuan) for (const ks of importedData.kasirSatuan) try { await dbAdd(STORES.KASIR_SATUAN, ks); } catch (error) { console.warn('Gagal mengimport satuan:', ks, error); }
+                            if (importedData.customers) for (const c of importedData.customers) try { await dbAdd(STORES.CUSTOMERS, c); } catch (error) { console.warn('Gagal mengimport customer:', c, error); }
+                            if (importedData.suppliers) for (const s of importedData.suppliers) try { await dbAdd(STORES.SUPPLIERS, s); } catch (error) { console.warn('Gagal mengimport supplier:', s, error); }
+                            if (importedData.pendingTransactions) for (const pt of importedData.pendingTransactions) try { await dbAdd(STORES.PENDING_TRANSACTIONS, pt); } catch (error) { console.warn('Gagal mengimport pending transactions:', pt, error); }
+                            if (importedData.settings) for (const set of importedData.settings) try { await dbAdd(STORES.SETTINGS, set); } catch (error) { console.warn('Gagal mengimport setting:', set, error); }
+                            await loadKasirCategories();
+                            await loadKasirItems();
+                            await loadKasirSatuan();
+                            await loadCustomers();
+                            await loadSuppliers();
+                            await loadPendingTransactions();
+                            showNotification('Data berhasil diimport!', 'success');
+                            resolve(true);
+                        } catch (error) {
+                            console.error('Error importing data:', error);
+                            showNotification('Gagal mengimport data: ' + error.message, 'error');
+                            resolve(false);
+                        } finally { hideLoading(); }
+                    };
+                    reader.onerror = () => { showNotification('Gagal membaca file', 'error'); hideLoading(); resolve(false); };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+        }
 
-async function importData() {
-    return new Promise((resolve) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) { resolve(false); return; }
-            showLoading();
-            const reader = new FileReader();
-            reader.onload = async (event) => {
+        async function clearAllData() {
+            if (confirm('Apakah Anda yakin ingin menghapus SEMUA data?\nTindakan ini tidak dapat dibatalkan!')) {
                 try {
-                    const importedData = JSON.parse(event.target.result);
+                    showLoading();
                     await dbClear(STORES.KASIR_CATEGORIES);
                     await dbClear(STORES.KASIR_ITEMS);
                     await dbClear(STORES.KASIR_SATUAN);
@@ -2454,176 +2598,137 @@ async function importData() {
                     await dbClear(STORES.SUPPLIERS);
                     await dbClear(STORES.PENDING_TRANSACTIONS);
                     await dbClear(STORES.SETTINGS);
-                    if (importedData.kasirCategories) for (const kc of importedData.kasirCategories) try { await dbAdd(STORES.KASIR_CATEGORIES, kc); } catch (error) { console.warn('Gagal mengimport kategori kasir:', kc, error); }
-                    if (importedData.kasirItems) for (const ki of importedData.kasirItems) try { await dbAdd(STORES.KASIR_ITEMS, ki); } catch (error) { console.warn('Gagal mengimport item kasir:', ki, error); }
-                    if (importedData.kasirSatuan) for (const ks of importedData.kasirSatuan) try { await dbAdd(STORES.KASIR_SATUAN, ks); } catch (error) { console.warn('Gagal mengimport satuan:', ks, error); }
-                    if (importedData.customers) for (const c of importedData.customers) try { await dbAdd(STORES.CUSTOMERS, c); } catch (error) { console.warn('Gagal mengimport customer:', c, error); }
-                    if (importedData.suppliers) for (const s of importedData.suppliers) try { await dbAdd(STORES.SUPPLIERS, s); } catch (error) { console.warn('Gagal mengimport supplier:', s, error); }
-                    if (importedData.pendingTransactions) for (const pt of importedData.pendingTransactions) try { await dbAdd(STORES.PENDING_TRANSACTIONS, pt); } catch (error) { console.warn('Gagal mengimport pending transactions:', pt, error); }
-                    if (importedData.settings) for (const set of importedData.settings) try { await dbAdd(STORES.SETTINGS, set); } catch (error) { console.warn('Gagal mengimport setting:', set, error); }
-                    await loadKasirCategories();
-                    await loadKasirItems();
-                    await loadKasirSatuan();
-                    await loadCustomers();
-                    await loadSuppliers();
-                    await loadPendingTransactions();
-                    showNotification('Data berhasil diimport!', 'success');
-                    resolve(true);
+                    await dbClear(STORES.APP_STATE);
+                    kasirCategories = [];
+                    kasirItems = [];
+                    kasirSatuan = [];
+                    customers = [];
+                    suppliers = [];
+                    pendingTransactions = [];
+                    showNotification('Semua data berhasil dihapus!', 'success');
                 } catch (error) {
-                    console.error('Error importing data:', error);
-                    showNotification('Gagal mengimport data: ' + error.message, 'error');
-                    resolve(false);
+                    console.error('Error clearing data:', error);
+                    showNotification('Gagal menghapus data: ' + error.message, 'error');
                 } finally { hideLoading(); }
-            };
-            reader.onerror = () => { showNotification('Gagal membaca file', 'error'); hideLoading(); resolve(false); };
-            reader.readAsText(file);
-        };
-        input.click();
-    });
-}
-
-async function clearAllData() {
-    if (confirm('Apakah Anda yakin ingin menghapus SEMUA data?\nTindakan ini tidak dapat dibatalkan!')) {
-        try {
-            showLoading();
-            await dbClear(STORES.KASIR_CATEGORIES);
-            await dbClear(STORES.KASIR_ITEMS);
-            await dbClear(STORES.KASIR_SATUAN);
-            await dbClear(STORES.CUSTOMERS);
-            await dbClear(STORES.SUPPLIERS);
-            await dbClear(STORES.PENDING_TRANSACTIONS);
-            await dbClear(STORES.SETTINGS);
-            await dbClear(STORES.APP_STATE);
-            kasirCategories = [];
-            kasirItems = [];
-            kasirSatuan = [];
-            customers = [];
-            suppliers = [];
-            pendingTransactions = [];
-            showNotification('Semua data berhasil dihapus!', 'success');
-        } catch (error) {
-            console.error('Error clearing data:', error);
-            showNotification('Gagal menghapus data: ' + error.message, 'error');
-        } finally { hideLoading(); }
-    }
-}
-
-async function forceResetDatabase() {
-    if (confirm('Yakin ingin reset database? Semua data akan hilang dan aplikasi akan direfresh!')) {
-        try {
-            showLoading();
-            if (db) db.close();
-            const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-            deleteRequest.onsuccess = () => {
-                console.log('Database deleted successfully');
-                showNotification('Database direset. Halaman akan direfresh...', 'success');
-                setTimeout(() => location.reload(), 2000);
-            };
-            deleteRequest.onerror = (event) => {
-                console.error('Error deleting database:', event.target.error);
-                showNotification('Gagal mereset database: ' + event.target.error, 'error');
-                hideLoading();
-            };
-            deleteRequest.onblocked = () => {
-                showNotification('Database diblokir. Tutup tab lain dan coba lagi.', 'error');
-                hideLoading();
-            };
-        } catch (error) {
-            console.error('Error in force reset:', error);
-            showNotification('Error: ' + error.message, 'error');
-            hideLoading();
+            }
         }
-    }
-}
 
-function showSettingsModal() {
-    const settingsContent = document.getElementById('settings-content');
-    settingsContent.innerHTML = `
-        <div style="margin-bottom:20px;">
-            <div style="color:#333333;margin-bottom:10px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
-                <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Data
-            </div>
-            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportData()">${icons.upload} Export Data</button>
-            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importData()">${icons.download} Import Data</button>
-            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
-            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
-        </div>
-        <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
-            <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
-                <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
-            </div>
-            <div style="margin-bottom:10px;">
-                <label style="display:block; margin-bottom:5px;">Panjang Digit Flex</label>
-                <input type="number" id="barcode-flex-length" class="form-input" value="${barcodeConfig.flexLength}" min="1" max="5">
-            </div>
-            <div style="margin-bottom:10px;">
-                <label style="display:block; margin-bottom:5px;">Nilai Flex (misal 02)</label>
-                <input type="text" id="barcode-flex-value" class="form-input" value="${barcodeConfig.flexValue}" maxlength="5">
-            </div>
-            <div style="margin-bottom:10px;">
-                <label style="display:block; margin-bottom:5px;">Panjang Digit Kode Item</label>
-                <input type="number" id="barcode-product-length" class="form-input" value="${barcodeConfig.productLength}" min="1" max="10">
-            </div>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px;">Panjang Digit Berat</label>
-                <input type="number" id="barcode-weight-length" class="form-input" value="${barcodeConfig.weightLength}" min="1" max="10">
-            </div>
-            <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
-            <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
-            <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
-        </div>
-    `;
-    const flexLen = document.getElementById('barcode-flex-length');
-    const prodLen = document.getElementById('barcode-product-length');
-    const weightLen = document.getElementById('barcode-weight-length');
-    const totalSpan = document.getElementById('total-digits-display');
-    function updateTotal() {
-        const total = (parseInt(flexLen.value) || 0) + (parseInt(prodLen.value) || 0) + (parseInt(weightLen.value) || 0);
-        totalSpan.textContent = total;
-        totalSpan.style.color = total === 13 ? 'green' : 'red';
-    }
-    flexLen.addEventListener('input', updateTotal);
-    prodLen.addEventListener('input', updateTotal);
-    weightLen.addEventListener('input', updateTotal);
-    document.getElementById('settings-modal').style.display = 'flex';
-    closeDrawer();
-}
+        async function forceResetDatabase() {
+            if (confirm('Yakin ingin reset database? Semua data akan hilang dan aplikasi akan direfresh!')) {
+                try {
+                    showLoading();
+                    if (db) db.close();
+                    const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+                    deleteRequest.onsuccess = () => {
+                        console.log('Database deleted successfully');
+                        showNotification('Database direset. Halaman akan direfresh...', 'success');
+                        setTimeout(() => location.reload(), 2000);
+                    };
+                    deleteRequest.onerror = (event) => {
+                        console.error('Error deleting database:', event.target.error);
+                        showNotification('Gagal mereset database: ' + event.target.error, 'error');
+                        hideLoading();
+                    };
+                    deleteRequest.onblocked = () => {
+                        showNotification('Database diblokir. Tutup tab lain dan coba lagi.', 'error');
+                        hideLoading();
+                    };
+                } catch (error) {
+                    console.error('Error in force reset:', error);
+                    showNotification('Error: ' + error.message, 'error');
+                    hideLoading();
+                }
+            }
+        }
 
-async function saveBarcodeConfigFromUI() {
-    const flexLength = parseInt(document.getElementById('barcode-flex-length').value);
-    const flexValue = document.getElementById('barcode-flex-value').value.trim();
-    const productLength = parseInt(document.getElementById('barcode-product-length').value);
-    const weightLength = parseInt(document.getElementById('barcode-weight-length').value);
+        function showSettingsModal() {
+            const settingsContent = document.getElementById('settings-content');
+            settingsContent.innerHTML = `
+                <div style="margin-bottom:20px;">
+                    <div style="color:#333333;margin-bottom:10px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Data
+                    </div>
+                    <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportData()">${icons.upload} Export Data</button>
+                    <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importData()">${icons.download} Import Data</button>
+                    <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
+                    <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
+                </div>
+                <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+                    <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Panjang Digit Flex</label>
+                        <input type="number" id="barcode-flex-length" class="form-input" value="${barcodeConfig.flexLength}" min="1" max="5">
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Nilai Flex (misal 02)</label>
+                        <input type="text" id="barcode-flex-value" class="form-input" value="${barcodeConfig.flexValue}" maxlength="5">
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Panjang Digit Kode Item</label>
+                        <input type="number" id="barcode-product-length" class="form-input" value="${barcodeConfig.productLength}" min="1" max="10">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; margin-bottom:5px;">Panjang Digit Berat</label>
+                        <input type="number" id="barcode-weight-length" class="form-input" value="${barcodeConfig.weightLength}" min="1" max="10">
+                    </div>
+                    <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
+                    <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
+                    <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
+                </div>
+            `;
+            const flexLen = document.getElementById('barcode-flex-length');
+            const prodLen = document.getElementById('barcode-product-length');
+            const weightLen = document.getElementById('barcode-weight-length');
+            const totalSpan = document.getElementById('total-digits-display');
+            function updateTotal() {
+                const total = (parseInt(flexLen.value) || 0) + (parseInt(prodLen.value) || 0) + (parseInt(weightLen.value) || 0);
+                totalSpan.textContent = total;
+                totalSpan.style.color = total === 13 ? 'green' : 'red';
+            }
+            flexLen.addEventListener('input', updateTotal);
+            prodLen.addEventListener('input', updateTotal);
+            weightLen.addEventListener('input', updateTotal);
+            document.getElementById('settings-modal').style.display = 'flex';
+            closeDrawer();
+        }
 
-    if (isNaN(flexLength) || flexLength < 1) { showNotification('Panjang Flex harus angka positif', 'error'); return; }
-    if (!flexValue) { showNotification('Nilai Flex harus diisi', 'error'); return; }
-    if (isNaN(productLength) || productLength < 1) { showNotification('Panjang Kode Item harus angka positif', 'error'); return; }
-    if (isNaN(weightLength) || weightLength < 1) { showNotification('Panjang Berat harus angka positif', 'error'); return; }
+        async function saveBarcodeConfigFromUI() {
+            const flexLength = parseInt(document.getElementById('barcode-flex-length').value);
+            const flexValue = document.getElementById('barcode-flex-value').value.trim();
+            const productLength = parseInt(document.getElementById('barcode-product-length').value);
+            const weightLength = parseInt(document.getElementById('barcode-weight-length').value);
 
-    const total = flexLength + productLength + weightLength;
-    if (total !== 13) {
-        showNotification(`Total panjang harus 13 digit, saat ini ${total}`, 'error');
-        return;
-    }
+            if (isNaN(flexLength) || flexLength < 1) { showNotification('Panjang Flex harus angka positif', 'error'); return; }
+            if (!flexValue) { showNotification('Nilai Flex harus diisi', 'error'); return; }
+            if (isNaN(productLength) || productLength < 1) { showNotification('Panjang Kode Item harus angka positif', 'error'); return; }
+            if (isNaN(weightLength) || weightLength < 1) { showNotification('Panjang Berat harus angka positif', 'error'); return; }
 
-    const newConfig = { flexLength, flexValue, productLength, weightLength };
-    try {
-        showLoading();
-        await saveBarcodeConfig(newConfig);
-        showNotification('Konfigurasi barcode tersimpan', 'success');
-        closeSettingsModal();
-    } catch (error) {
-        showNotification('Gagal menyimpan: ' + error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
+            const total = flexLength + productLength + weightLength;
+            if (total !== 13) {
+                showNotification(`Total panjang harus 13 digit, saat ini ${total}`, 'error');
+                return;
+            }
 
-function closeSettingsModal() {
-    document.getElementById('settings-modal').style.display = 'none';
-}
+            const newConfig = { flexLength, flexValue, productLength, weightLength };
+            try {
+                showLoading();
+                await saveBarcodeConfig(newConfig);
+                showNotification('Konfigurasi barcode tersimpan', 'success');
+                closeSettingsModal();
+            } catch (error) {
+                showNotification('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
         // ==================== LOCALSTORAGE CART ====================
         const CART_STORAGE_KEY = 'pos_cart';
         const CUSTOMER_STORAGE_KEY = 'pos_selected_customer';
