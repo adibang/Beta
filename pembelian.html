@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSPLUS - Pembelian Barang</title>
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            body {
+                background: #f5f5f5;
+                min-height: 100vh;
+                color: #333;
+            }
+            .app-header {
+                background: #FFFFFF;
+                color: #006B54;
+                padding: 16px 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .app-header h1 {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #006B54;
+            }
+            .app-header .back-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #006B54;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px;
+            }
+            .app-header .back-btn svg {
+                width: 24px;
+                height: 24px;
+                stroke: currentColor;
+                stroke-width: 2;
+                fill: none;
+            }
+            .main-container {
+                max-width: 1200px;
+                margin: 20px auto;
+                padding: 0 20px;
+            }
+            .supplier-section {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+            .supplier-section label {
+                font-weight: 600;
+                color: #006B54;
+            }
+            .supplier-section select {
+                flex: 1;
+                min-width: 250px;
+                padding: 12px 16px;
+                border: 1px solid #333;
+                border-radius: 15px;
+                font-size: 1rem;
+            }
+            .search-section {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            .search-section input {
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #333;
+                border-radius: 15px;
+                font-size: 1rem;
+            }
+            .product-results {
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+                border-radius: 15px;
+                padding: 10px;
+                margin-top: 10px;
+                background: white;
+            }
+            .product-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+            }
+            .product-item:hover {
+                background: #f0f9f6;
+            }
+            .product-item .name {
+                font-weight: 600;
+                color: #006B54;
+            }
+            .product-item .price {
+                font-size: 0.9rem;
+                color: #333;
+            }
+            .cart-table-wrapper {
+                width: 100%;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+                overflow: hidden;
+            }
+            .cart-table {
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+            }
+            .cart-table th {
+                background: #006B54;
+                color: white;
+                padding: 12px 8px;
+                text-align: left;
+            }
+            .cart-table td {
+                padding: 12px 8px;
+                border-bottom: 1px solid #eee;
+            }
+            .cart-table input[type="number"] {
+                width: 80px;
+                padding: 8px;
+                border: 1px solid #333;
+                border-radius: 10px;
+                text-align: center;
+            }
+            .action-btn {
+                width: 30px;
+                height: 30px;
+                border-radius: 15%;
+                background: white;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: 1px solid #ff6b6b;
+            }
+            .action-btn svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 2;
+                color: #ff6b6b;
+            }
+            .action-btn.delete-btn:hover {
+                background: #ff6b6b;
+            }
+            .action-btn.delete-btn:hover svg {
+                color: white;
+            }
+            .summary {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+            }
+            .summary-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            }
+            .summary-row.total {
+                font-weight: 600;
+                font-size: 1.3rem;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }
+            .summary input {
+                width: 150px;
+                padding: 8px;
+                border: 1px solid #333;
+                border-radius: 10px;
+                text-align: right;
+            }
+            .payment-section {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+            }
+            .payment-section select, .payment-section input {
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #333;
+                border-radius: 15px;
+                font-size: 1rem;
+            }
+            .payment-section .row {
+                margin-bottom: 15px;
+            }
+            .actions {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+            button {
+                border-radius: 15px;
+                padding: 12px 24px;
+                font-weight: 600;
+                cursor: pointer;
+                border: 1px solid transparent;
+                font-size: 1rem;
+                min-height: 48px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .btn-primary {
+                background: #006B54;
+                color: white;
+                border: 1px solid #006B54;
+            }
+            .btn-primary:hover {
+                background: #005a46;
+            }
+            .btn-secondary {
+                background: #d9d9d9;
+                color: #333;
+                border: 1px solid #d9d9d9;
+            }
+            .btn-secondary:hover {
+                background: #cccccc;
+            }
+            .btn-danger {
+                background: #ff6b6b;
+                color: white;
+                border: 1px solid #ff6b6b;
+            }
+            .btn-danger:hover {
+                background: #ff5252;
+            }
+            .icon {
+                width: 20px;
+                height: 20px;
+                stroke: currentColor;
+                stroke-width: 2;
+                fill: none;
+            }
+            .notification {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 20px;
+                border-radius: 15px;
+                background: #006B54;
+                color: white;
+                display: none;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+            .loading-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255,255,255,0.95);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            }
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #006B54;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            .error-state {
+                text-align: center;
+                padding: 40px 20px;
+                color: #666;
+            }
+            @media (max-width: 768px) {
+                .cart-table-wrapper {
+                    height: 375px;
+                    overflow-y: auto;
+                }
+                .cart-table th,
+                .cart-table td {
+                    font-size: 0.8rem;
+                    padding: 8px 6px;
+                }
+                .cart-table input[type="number"] {
+                    width: 60px;
+                    padding: 4px;
+                    font-size: 0.8rem;
+                }
+                .action-btn {
+                    width: 30px;
+                    height: 30px;
+                }
+                .action-btn svg {
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+      </style>
+</head>
+<body>
+    <header class="app-header">
+        <button class="back-btn" onclick="window.close()">
+            <svg viewBox="0 0 24 24">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </button>
+        <h1>Pembelian Barang (Purchase Order)</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Pilih Supplier -->
+        <div class="supplier-section">
+            <label>Supplier:</label>
+            <select id="supplier-select">
+                <option value="">-- Pilih Supplier --</option>
+            </select>
+            <button class="btn-secondary" onclick="refreshSuppliers()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                </svg>
+                Muat Ulang
+            </button>
+        </div>
+
+        <!-- Pencarian Produk -->
+        <div class="search-section">
+            <input type="text" id="search-product" placeholder="Cari produk (nama/kode/barcode)..." onkeyup="searchProducts()">
+            <div id="product-list" class="product-results"></div>
+        </div>
+
+        <!-- Keranjang -->
+        <div class="cart-table-wrapper">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Harga Beli Satuan</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cart-items"></tbody>
+            </table>
+        </div>
+
+        <!-- Ringkasan -->
+        <div class="summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal">Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Diskon</span>
+                <input type="number" id="discount" min="0" step="0.01" value="0" oninput="calculateTotal()">
+            </div>
+            <div class="summary-row">
+                <span>Pajak</span>
+                <input type="number" id="tax" min="0" step="0.01" value="0" oninput="calculateTotal()">
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span id="total">Rp 0</span>
+            </div>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="payment-section">
+            <div class="row">
+                <label>Metode Pembayaran</label>
+                <select id="payment-method">
+                    <option value="cash">Tunai</option>
+                    <option value="transfer">Transfer</option>
+                    <option value="credit">Utang</option>
+                </select>
+            </div>
+            <div class="row">
+                <label>Jumlah Dibayar</label>
+                <input type="number" id="paid-amount" min="0" step="0.01" value="0">
+            </div>
+            <div class="row">
+                <label>Catatan</label>
+                <input type="text" id="notes" placeholder="Opsional">
+            </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="actions">
+            <button class="btn-secondary" onclick="resetForm()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Batal
+            </button>
+            <button class="btn-primary" onclick="savePurchase()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Simpan Pembelian
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div style="margin-top:20px; color:#006B54;">Memproses...</div>
+    </div>
+
+    <!-- Notifikasi -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // ==================== KONFIGURASI DATABASE ====================
+        const DB_NAME = 'POSKasirDB';
+        const DB_VERSION = 15;
+        let db = null;
+
+        // Data global
+        let suppliers = [];
+        let kasirItems = [];
+        let kasirSatuan = [];
+        let cart = [];
+
+        // Ikon yang digunakan (line art)
+        const icons = {
+            delete: `<svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`
+        };
+
+        // ==================== FUNGSI HELPER ====================
+        function formatRupiah(angka) {
+            return 'Rp ' + angka.toLocaleString('id-ID');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.backgroundColor = type === 'success' ? '#006B54' : (type === 'error' ? '#dc3545' : '#ffc107');
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // ==================== PERSISTENSI KERANJANG (localStorage) ====================
+        const CART_STORAGE_KEY = 'purchaseCart';
+
+        function saveCartToLocalStorage() {
+            try {
+                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            } catch (e) {
+                console.warn('Gagal menyimpan cart ke localStorage', e);
+            }
+        }
+
+        function loadCartFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem(CART_STORAGE_KEY);
+                if (saved) {
+                    cart = JSON.parse(saved);
+                    // Validasi sederhana
+                    cart = cart.filter(item => item.itemId && item.itemName !== undefined);
+                } else {
+                    cart = [];
+                }
+            } catch (e) {
+                console.warn('Gagal memuat cart dari localStorage', e);
+                cart = [];
+            }
+            renderCart();
+        }
+
+        // ==================== DATABASE FUNCTIONS ====================
+        async function initDatabase() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    alert('Browser tidak mendukung IndexedDB.');
+                    reject('IndexedDB not supported');
+                    return;
+                }
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = (e) => {
+                    console.error('Database error:', e.target.error);
+                    reject(e.target.error);
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    console.log('Database connected');
+                    resolve();
+                };
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('settings')) {
+                        db.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                    if (!db.objectStoreNames.contains('kasirItems')) {
+                        db.createObjectStore('kasirItems', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('kasirSatuan')) {
+                        db.createObjectStore('kasirSatuan', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('suppliers')) {
+                        db.createObjectStore('suppliers', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('purchases')) {
+                        const purchaseStore = db.createObjectStore('purchases', { keyPath: 'id', autoIncrement: true });
+                        purchaseStore.createIndex('date', 'date', { unique: false });
+                        purchaseStore.createIndex('supplierId', 'supplierId', { unique: false });
+                        purchaseStore.createIndex('purchaseNumber', 'purchaseNumber', { unique: true });
+                    }
+                };
+            });
+        }
+
+        async function dbGetAll(storeName) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('DB not init'); return; }
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function dbAdd(storeName, data) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('DB not init'); return; }
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.add(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function dbPut(storeName, data) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('DB not init'); return; }
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.put(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function dbGet(storeName, key) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('DB not init'); return; }
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        // ==================== LOAD DATA ====================
+        async function loadSuppliers() {
+            try {
+                suppliers = await dbGetAll('suppliers');
+                suppliers.sort((a,b) => a.name.localeCompare(b.name));
+                renderSupplierSelect();
+            } catch (error) {
+                console.error('Gagal load supplier:', error);
+            }
+        }
+
+        async function loadKasirItems() {
+            try {
+                kasirItems = await dbGetAll('kasirItems');
+                kasirItems.forEach(item => { if (item.stock === undefined) item.stock = 0; });
+            } catch (error) {
+                console.error('Gagal load items:', error);
+            }
+        }
+
+        async function loadKasirSatuan() {
+            try {
+                kasirSatuan = await dbGetAll('kasirSatuan');
+            } catch (error) {
+                console.error('Gagal load satuan:', error);
+            }
+        }
+
+        function renderSupplierSelect() {
+            const select = document.getElementById('supplier-select');
+            select.innerHTML = '<option value="">-- Pilih Supplier --</option>';
+            suppliers.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+
+        // ==================== GENERATE NOMOR PEMBELIAN ====================
+        async function generatePurchaseNumber() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}${month}${day}`;
+
+            let lastCounter = 0;
+            try {
+                const settings = await dbGet('settings', 'lastPurchaseNumber');
+                if (settings && settings.value) {
+                    if (settings.value.date === dateStr) {
+                        lastCounter = settings.value.counter;
+                    } else {
+                        lastCounter = 0;
+                    }
+                }
+            } catch (error) {
+                console.warn('Gagal membaca counter purchase:', error);
+            }
+
+            const newCounter = lastCounter + 1;
+            const purchaseNumber = `PO-${dateStr}-${String(newCounter).padStart(5, '0')}`;
+
+            try {
+                await dbPut('settings', {
+                    key: 'lastPurchaseNumber',
+                    value: { date: dateStr, counter: newCounter }
+                });
+            } catch (error) {
+                console.error('Gagal menyimpan counter purchase:', error);
+            }
+
+            return purchaseNumber;
+        }
+
+        // ==================== PENCARIAN PRODUK (MODIFIKASI) ====================
+        function searchProducts() {
+            const keyword = document.getElementById('search-product').value.toLowerCase().trim();
+            const listDiv = document.getElementById('product-list');
+            if (!keyword) {
+                listDiv.innerHTML = '';
+                return;
+            }
+
+            // Filter item berdasarkan nama, kode, atau barcode produk
+            let results = kasirItems.filter(item => 
+                item.name.toLowerCase().includes(keyword) ||
+                item.code.toLowerCase().includes(keyword) ||
+                (item.barcode && item.barcode.toLowerCase().includes(keyword))
+            );
+
+            // Cari juga berdasarkan barcode satuan
+            const unitBarcodeMatches = [];
+            kasirItems.forEach(item => {
+                if (item.unitConversions && Array.isArray(item.unitConversions)) {
+                    const matchedConv = item.unitConversions.find(conv => 
+                        conv.barcode && conv.barcode.toLowerCase().includes(keyword)
+                    );
+                    if (matchedConv && !results.includes(item)) {
+                        unitBarcodeMatches.push({ item, conversion: matchedConv });
+                    }
+                }
+            });
+
+            // Gabungkan hasil, hindari duplikat
+            const allResults = [...results, ...unitBarcodeMatches.map(m => m.item)];
+            const uniqueResults = [...new Set(allResults)].slice(0, 10);
+
+            if (uniqueResults.length === 0) {
+                listDiv.innerHTML = '<div style="padding:10px; text-align:center;">Tidak ada produk</div>';
+                return;
+            }
+
+            listDiv.innerHTML = uniqueResults.map(item => {
+                // Cari konversi yang cocok (jika ada)
+                const match = unitBarcodeMatches.find(m => m.item.id === item.id);
+                let extraInfo = '';
+                let onclickAttr = `addToCart(${item.id})`; // default tanpa konversi
+
+                if (match) {
+                    const unitName = kasirSatuan.find(s => s.id == match.conversion.unit)?.name || '';
+                    extraInfo = ` (Satuan: ${unitName})`;
+                    // Sertakan data konversi dalam panggilan (escape JSON)
+                    const convStr = JSON.stringify(match.conversion).replace(/"/g, '&quot;');
+                    onclickAttr = `addToCart(${item.id}, ${convStr})`;
+                }
+
+                return `
+                    <div class="product-item" onclick="${onclickAttr}">
+                        <span class="name">${item.name}${extraInfo}</span>
+                        <span class="price">Harga Beli: Rp ${(item.hargaDasar || 0).toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== KERANJANG (MODIFIKASI) ====================
+        function addToCart(itemId, conversion = null) {
+            const item = kasirItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            // Tentukan harga beli: jika ada konversi dan memiliki basePrice, gunakan itu
+            let purchasePrice = item.hargaDasar || 0;
+            if (conversion && conversion.basePrice !== undefined) {
+                purchasePrice = conversion.basePrice;
+            }
+
+            // Cek apakah item dengan satuan yang sama sudah ada di keranjang
+            const existingIndex = cart.findIndex(c => 
+                c.itemId === itemId && 
+                (c.unitConversion?.barcode === conversion?.barcode)
+            );
+
+            if (existingIndex >= 0) {
+                cart[existingIndex].qty += 1;
+                cart[existingIndex].subtotal = cart[existingIndex].qty * cart[existingIndex].purchasePrice;
+            } else {
+                cart.push({
+                    itemId: item.id,
+                    itemName: item.name,
+                    qty: 1,
+                    purchasePrice: purchasePrice,
+                    subtotal: purchasePrice,
+                    unitConversion: conversion ? { ...conversion } : null,
+                    weightGram: 0
+                });
+            }
+            renderCart();
+            saveCartToLocalStorage();
+            document.getElementById('search-product').value = '';
+            document.getElementById('product-list').innerHTML = '';
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+            saveCartToLocalStorage();
+        }
+
+        function updateCartItem(index, field, value) {
+            if (field === 'qty') {
+                cart[index].qty = parseFloat(value) || 0;
+            } else if (field === 'price') {
+                cart[index].purchasePrice = parseFloat(value) || 0;
+            }
+            cart[index].subtotal = cart[index].qty * cart[index].purchasePrice;
+            renderCart();
+            saveCartToLocalStorage();
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('cart-items');
+            let subtotal = 0;
+            tbody.innerHTML = cart.map((c, idx) => {
+                subtotal += c.subtotal;
+                // Tampilkan satuan jika ada
+                let unitText = '';
+                if (c.unitConversion) {
+                    const unit = kasirSatuan.find(s => s.id == c.unitConversion.unit)?.name || '?';
+                    unitText = ` (${unit})`;
+                }
+                return `
+                    <tr>
+                        <td>${c.itemName}${unitText}</td>
+                        <td>
+                            <input type="number" min="0" step="0.01" value="${c.qty}" onchange="updateCartItem(${idx}, 'qty', this.value)">
+                        </td>
+                        <td>
+                            <input type="number" min="0" step="0.01" value="${c.purchasePrice}" onchange="updateCartItem(${idx}, 'price', this.value)">
+                        </td>
+                        <td>${formatRupiah(c.subtotal)}</td>
+                        <td><button class="action-btn delete-btn" onclick="removeFromCart(${idx})" title="Hapus">${icons.delete}</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('subtotal').textContent = formatRupiah(subtotal);
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const subtotal = cart.reduce((sum, c) => sum + c.subtotal, 0);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const tax = parseFloat(document.getElementById('tax').value) || 0;
+            const total = subtotal - discount + tax;
+            document.getElementById('total').textContent = formatRupiah(total);
+        }
+
+        // ==================== SIMPAN PEMBELIAN (MODIFIKASI) ====================
+        async function savePurchase() {
+            // Validasi supplier
+            const supplierSelect = document.getElementById('supplier-select');
+            const supplierId = supplierSelect.value;
+            if (!supplierId) {
+                showNotification('Pilih supplier terlebih dahulu', 'error');
+                return;
+            }
+            const supplier = suppliers.find(s => s.id == supplierId);
+            if (!supplier) return;
+
+            if (cart.length === 0) {
+                showNotification('Keranjang masih kosong', 'error');
+                return;
+            }
+
+            const paidAmount = parseFloat(document.getElementById('paid-amount').value) || 0;
+
+            showLoading();
+            try {
+                const purchaseNumber = await generatePurchaseNumber();
+                const subtotal = cart.reduce((sum, c) => sum + c.subtotal, 0);
+                const discount = parseFloat(document.getElementById('discount').value) || 0;
+                const tax = parseFloat(document.getElementById('tax').value) || 0;
+                const total = subtotal - discount + tax;
+
+                const items = cart.map(c => ({
+                    itemId: c.itemId,
+                    itemName: c.itemName,
+                    qty: c.qty,
+                    purchasePricePerUnit: c.purchasePrice,
+                    subtotal: c.subtotal,
+                    unitConversion: c.unitConversion,
+                    weightGram: c.weightGram
+                }));
+
+                const purchaseData = {
+                    purchaseNumber,
+                    date: new Date().toISOString(),
+                    supplierId: supplier.id,
+                    supplierName: supplier.name,
+                    items,
+                    subtotal,
+                    discount,
+                    tax,
+                    total,
+                    paymentMethod: document.getElementById('payment-method').value,
+                    paidAmount,
+                    notes: document.getElementById('notes').value,
+                    createdAt: new Date().toISOString()
+                };
+
+                await dbAdd('purchases', purchaseData);
+
+                // Update stok item (perhatikan konversi)
+                for (let c of cart) {
+                    const item = kasirItems.find(i => i.id === c.itemId);
+                    if (item) {
+                        let qtyToAdd = c.qty;
+                        if (c.unitConversion && c.unitConversion.value) {
+                            qtyToAdd *= c.unitConversion.value; // konversi ke satuan dasar
+                        }
+                        item.stock += qtyToAdd;
+                        item.updatedAt = new Date().toISOString();
+                        await dbPut('kasirItems', item);
+                    }
+                }
+
+                await loadKasirItems();
+                showNotification('Pembelian berhasil disimpan!', 'success');
+                resetForm();
+            } catch (error) {
+                console.error('Error saving purchase:', error);
+                showNotification('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('supplier-select').value = '';
+            cart = [];
+            renderCart();
+            saveCartToLocalStorage();
+            document.getElementById('discount').value = 0;
+            document.getElementById('tax').value = 0;
+            document.getElementById('paid-amount').value = 0;
+            document.getElementById('notes').value = '';
+            document.getElementById('payment-method').value = 'cash';
+            document.getElementById('subtotal').textContent = 'Rp 0';
+            document.getElementById('total').textContent = 'Rp 0';
+            document.getElementById('search-product').value = '';
+            document.getElementById('product-list').innerHTML = '';
+        }
+
+        async function refreshSuppliers() {
+            showLoading();
+            await loadSuppliers();
+            hideLoading();
+            showNotification('Daftar supplier diperbarui', 'success');
+        }
+
+        // ==================== INISIALISASI ====================
+        async function initApp() {
+            showLoading();
+            try {
+                await initDatabase();
+                await loadSuppliers();
+                await loadKasirItems();
+                await loadKasirSatuan();
+                loadCartFromLocalStorage();
+                console.log('Pembelian page ready');
+            } catch (error) {
+                console.error('Init error:', error);
+                showNotification('Gagal memuat data: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
