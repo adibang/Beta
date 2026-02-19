@@ -1271,8 +1271,8 @@
         <!-- Grup MASTER DATA KASIR -->
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
-                <span class="menu-title">MASTER DATA KASIR</span>
-                <span class="arrow">▶</span>
+                <span class="menu-title">MASTER DATA</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openTambahItemKasirModal(); closeSubMenu(this);">
@@ -1329,7 +1329,7 @@
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
                 <span class="menu-title">TRANSAKSI</span>
-                <span class="arrow">▶</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openTransaksiPage(); closeSubMenu(this);">
@@ -1346,8 +1346,8 @@
         <!-- Grup PELANGGAN & PEMASOK -->
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
-                <span class="menu-title">PELANGGAN & PEMASOK</span>
-                <span class="arrow">▶</span>
+                <span class="menu-title">CUST & SUPL</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openTambahCustomerModal(); closeSubMenu(this);">
@@ -1387,7 +1387,7 @@
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
                 <span class="menu-title">INVENTORY</span>
-                <span class="arrow">▶</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openInventoryStokModal(); closeSubMenu(this);">
@@ -1422,7 +1422,7 @@
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
                 <span class="menu-title">LAPORAN</span>
-                <span class="arrow">▶</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openLaporanPage(); closeSubMenu(this);">
@@ -1440,7 +1440,7 @@
         <div class="menu-group">
             <div class="menu-header" onclick="toggleSubMenu(this)">
                 <span class="menu-title">PEMBELIAN</span>
-                <span class="arrow">▶</span>
+                <span class="arrow">></span>
             </div>
             <div class="sub-menu">
                 <button onclick="openPembelianPage(); closeSubMenu(this);">
@@ -1502,7 +1502,7 @@
                 <line x1="7" y1="15" x2="12" y2="15"/>
             </svg>
         </div>
-        <h2>Selamat datang di POS Kasir</h2>
+        <h2>Selamat datang di POSPLUS</h2>
         <p>Gunakan menu di samping untuk memulai transaksi atau mengelola data.</p>
     </main>
 
@@ -2017,8 +2017,12 @@
                     </select>
                 </div>
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:8px; color:#333; font-weight:500;">Nomor Rekening (BRIlink)</label>
+                    <label style="display:block; margin-bottom:8px; color:#333; font-weight:500;">Nomor Rekening</label>
                     <input type="text" class="form-input" id="customer-account" placeholder="Nomor rekening">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:8px; color:#333; font-weight:500;">Nama Bank</label>
+                    <input type="text" class="form-input" id="customer-bank" placeholder="Nama Bank">
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:8px; color:#333; font-weight:500;">Token Listrik</label>
@@ -3170,7 +3174,7 @@
                     return;
                 }
                 loginTapCount++;
-                if (loginTapCount >= 10) {
+                if (loginTapCount >= 20) {
                     overlay.removeEventListener('click', tapHandler);
                     overlay.style.opacity = '0';
                     setTimeout(async () => {
