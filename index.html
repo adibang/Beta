@@ -2401,6 +2401,56 @@
             document.getElementById('drawer-overlay').classList.remove('show');
         }
 
+        // ==================== FUNGSI SETTINGS MODAL ====================
+function showSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    const content = document.getElementById('settings-content');
+    // Isi konten dengan form konfigurasi barcode
+    content.innerHTML = `
+        <h3 style="color:#006B54; margin-bottom:15px;">Pengaturan Barcode</h3>
+        <div style="margin-bottom:10px;">
+            <label>Panjang Flex:</label>
+            <input type="number" id="setting-flex-length" value="${barcodeConfig.flexLength}" min="1" max="5">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>Nilai Flex:</label>
+            <input type="text" id="setting-flex-value" value="${barcodeConfig.flexValue}">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>Panjang Kode Produk:</label>
+            <input type="number" id="setting-product-length" value="${barcodeConfig.productLength}" min="1" max="10">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>Panjang Berat:</label>
+            <input type="number" id="setting-weight-length" value="${barcodeConfig.weightLength}" min="1" max="10">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
+            <button class="form-button-secondary" onclick="closeSettingsModal()">Batal</button>
+            <button class="form-button-primary" onclick="saveBarcodeSettings()">Simpan</button>
+        </div>
+    `;
+    modal.style.display = 'flex';
+}
+
+function closeSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'none';
+}
+
+async function saveBarcodeSettings() {
+    const flexLength = parseInt(document.getElementById('setting-flex-length').value) || 2;
+    const flexValue = document.getElementById('setting-flex-value').value || '02';
+    const productLength = parseInt(document.getElementById('setting-product-length').value) || 5;
+    const weightLength = parseInt(document.getElementById('setting-weight-length').value) || 6;
+    const config = { flexLength, flexValue, productLength, weightLength };
+    try {
+        await saveBarcodeConfig(config);
+        showNotification('Pengaturan barcode disimpan', 'success');
+        closeSettingsModal();
+    } catch (error) {
+        showNotification('Gagal menyimpan: ' + error.message, 'error');
+    }
+}
+
         // ==================== LOCALSTORAGE CART ====================
         const CART_STORAGE_KEY = 'pos_cart';
         const CUSTOMER_STORAGE_KEY = 'pos_selected_customer';
