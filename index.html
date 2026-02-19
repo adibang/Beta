@@ -2401,56 +2401,229 @@
             document.getElementById('drawer-overlay').classList.remove('show');
         }
 
-        // ==================== FUNGSI SETTINGS MODAL ====================
+        // ==================== SETTINGS MODAL ====================
+async function exportData() {
+    try {
+        showLoading();
+        const exportData = {
+            kasirCategories: await dbGetAll(STORES.KASIR_CATEGORIES),
+            kasirItems: await dbGetAll(STORES.KASIR_ITEMS),
+            kasirSatuan: await dbGetAll(STORES.KASIR_SATUAN),
+            customers: await dbGetAll(STORES.CUSTOMERS),
+            suppliers: await dbGetAll(STORES.SUPPLIERS),
+            pendingTransactions: await dbGetAll(STORES.PENDING_TRANSACTIONS),
+            settings: await dbGetAll(STORES.SETTINGS),
+            exportDate: new Date().toISOString(),
+            version: DB_VERSION
+        };
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        const exportFileName = `pos-backup-${new Date().toISOString().split('T')[0]}.json`;
+        const link = document.createElement('a');
+        link.href = dataUri;
+        link.download = exportFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification('Data berhasil dieksport!', 'success');
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        showNotification('Gagal mengeksport data: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function importData() {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) { resolve(false); return; }
+            showLoading();
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    await dbClear(STORES.KASIR_CATEGORIES);
+                    await dbClear(STORES.KASIR_ITEMS);
+                    await dbClear(STORES.KASIR_SATUAN);
+                    await dbClear(STORES.CUSTOMERS);
+                    await dbClear(STORES.SUPPLIERS);
+                    await dbClear(STORES.PENDING_TRANSACTIONS);
+                    await dbClear(STORES.SETTINGS);
+                    if (importedData.kasirCategories) for (const kc of importedData.kasirCategories) try { await dbAdd(STORES.KASIR_CATEGORIES, kc); } catch (error) { console.warn('Gagal mengimport kategori kasir:', kc, error); }
+                    if (importedData.kasirItems) for (const ki of importedData.kasirItems) try { await dbAdd(STORES.KASIR_ITEMS, ki); } catch (error) { console.warn('Gagal mengimport item kasir:', ki, error); }
+                    if (importedData.kasirSatuan) for (const ks of importedData.kasirSatuan) try { await dbAdd(STORES.KASIR_SATUAN, ks); } catch (error) { console.warn('Gagal mengimport satuan:', ks, error); }
+                    if (importedData.customers) for (const c of importedData.customers) try { await dbAdd(STORES.CUSTOMERS, c); } catch (error) { console.warn('Gagal mengimport customer:', c, error); }
+                    if (importedData.suppliers) for (const s of importedData.suppliers) try { await dbAdd(STORES.SUPPLIERS, s); } catch (error) { console.warn('Gagal mengimport supplier:', s, error); }
+                    if (importedData.pendingTransactions) for (const pt of importedData.pendingTransactions) try { await dbAdd(STORES.PENDING_TRANSACTIONS, pt); } catch (error) { console.warn('Gagal mengimport pending transactions:', pt, error); }
+                    if (importedData.settings) for (const set of importedData.settings) try { await dbAdd(STORES.SETTINGS, set); } catch (error) { console.warn('Gagal mengimport setting:', set, error); }
+                    await loadKasirCategories();
+                    await loadKasirItems();
+                    await loadKasirSatuan();
+                    await loadCustomers();
+                    await loadSuppliers();
+                    await loadPendingTransactions();
+                    showNotification('Data berhasil diimport!', 'success');
+                    resolve(true);
+                } catch (error) {
+                    console.error('Error importing data:', error);
+                    showNotification('Gagal mengimport data: ' + error.message, 'error');
+                    resolve(false);
+                } finally { hideLoading(); }
+            };
+            reader.onerror = () => { showNotification('Gagal membaca file', 'error'); hideLoading(); resolve(false); };
+            reader.readAsText(file);
+        };
+        input.click();
+    });
+}
+
+async function clearAllData() {
+    if (confirm('Apakah Anda yakin ingin menghapus SEMUA data?\nTindakan ini tidak dapat dibatalkan!')) {
+        try {
+            showLoading();
+            await dbClear(STORES.KASIR_CATEGORIES);
+            await dbClear(STORES.KASIR_ITEMS);
+            await dbClear(STORES.KASIR_SATUAN);
+            await dbClear(STORES.CUSTOMERS);
+            await dbClear(STORES.SUPPLIERS);
+            await dbClear(STORES.PENDING_TRANSACTIONS);
+            await dbClear(STORES.SETTINGS);
+            await dbClear(STORES.APP_STATE);
+            kasirCategories = [];
+            kasirItems = [];
+            kasirSatuan = [];
+            customers = [];
+            suppliers = [];
+            pendingTransactions = [];
+            showNotification('Semua data berhasil dihapus!', 'success');
+        } catch (error) {
+            console.error('Error clearing data:', error);
+            showNotification('Gagal menghapus data: ' + error.message, 'error');
+        } finally { hideLoading(); }
+    }
+}
+
+async function forceResetDatabase() {
+    if (confirm('Yakin ingin reset database? Semua data akan hilang dan aplikasi akan direfresh!')) {
+        try {
+            showLoading();
+            if (db) db.close();
+            const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+            deleteRequest.onsuccess = () => {
+                console.log('Database deleted successfully');
+                showNotification('Database direset. Halaman akan direfresh...', 'success');
+                setTimeout(() => location.reload(), 2000);
+            };
+            deleteRequest.onerror = (event) => {
+                console.error('Error deleting database:', event.target.error);
+                showNotification('Gagal mereset database: ' + event.target.error, 'error');
+                hideLoading();
+            };
+            deleteRequest.onblocked = () => {
+                showNotification('Database diblokir. Tutup tab lain dan coba lagi.', 'error');
+                hideLoading();
+            };
+        } catch (error) {
+            console.error('Error in force reset:', error);
+            showNotification('Error: ' + error.message, 'error');
+            hideLoading();
+        }
+    }
+}
+
 function showSettingsModal() {
-    const modal = document.getElementById('settings-modal');
-    const content = document.getElementById('settings-content');
-    // Isi konten dengan form konfigurasi barcode
-    content.innerHTML = `
-        <h3 style="color:#006B54; margin-bottom:15px;">Pengaturan Barcode</h3>
-        <div style="margin-bottom:10px;">
-            <label>Panjang Flex:</label>
-            <input type="number" id="setting-flex-length" value="${barcodeConfig.flexLength}" min="1" max="5">
+    const settingsContent = document.getElementById('settings-content');
+    settingsContent.innerHTML = `
+        <div style="margin-bottom:20px;">
+            <div style="color:#333333;margin-bottom:10px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Data
+            </div>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportData()">${icons.upload} Export Data</button>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importData()">${icons.download} Import Data</button>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
         </div>
-        <div style="margin-bottom:10px;">
-            <label>Nilai Flex:</label>
-            <input type="text" id="setting-flex-value" value="${barcodeConfig.flexValue}">
-        </div>
-        <div style="margin-bottom:10px;">
-            <label>Panjang Kode Produk:</label>
-            <input type="number" id="setting-product-length" value="${barcodeConfig.productLength}" min="1" max="10">
-        </div>
-        <div style="margin-bottom:10px;">
-            <label>Panjang Berat:</label>
-            <input type="number" id="setting-weight-length" value="${barcodeConfig.weightLength}" min="1" max="10">
+        <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+            <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:5px;">Panjang Digit Flex</label>
+                <input type="number" id="barcode-flex-length" class="form-input" value="${barcodeConfig.flexLength}" min="1" max="5">
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:5px;">Nilai Flex (misal 02)</label>
+                <input type="text" id="barcode-flex-value" class="form-input" value="${barcodeConfig.flexValue}" maxlength="5">
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:5px;">Panjang Digit Kode Item</label>
+                <input type="number" id="barcode-product-length" class="form-input" value="${barcodeConfig.productLength}" min="1" max="10">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px;">Panjang Digit Berat</label>
+                <input type="number" id="barcode-weight-length" class="form-input" value="${barcodeConfig.weightLength}" min="1" max="10">
+            </div>
+            <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
+            <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
-            <button class="form-button-secondary" onclick="closeSettingsModal()">Batal</button>
-            <button class="form-button-primary" onclick="saveBarcodeSettings()">Simpan</button>
+            <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
         </div>
     `;
-    modal.style.display = 'flex';
+    const flexLen = document.getElementById('barcode-flex-length');
+    const prodLen = document.getElementById('barcode-product-length');
+    const weightLen = document.getElementById('barcode-weight-length');
+    const totalSpan = document.getElementById('total-digits-display');
+    function updateTotal() {
+        const total = (parseInt(flexLen.value) || 0) + (parseInt(prodLen.value) || 0) + (parseInt(weightLen.value) || 0);
+        totalSpan.textContent = total;
+        totalSpan.style.color = total === 13 ? 'green' : 'red';
+    }
+    flexLen.addEventListener('input', updateTotal);
+    prodLen.addEventListener('input', updateTotal);
+    weightLen.addEventListener('input', updateTotal);
+    document.getElementById('settings-modal').style.display = 'flex';
+    closeDrawer();
+}
+
+async function saveBarcodeConfigFromUI() {
+    const flexLength = parseInt(document.getElementById('barcode-flex-length').value);
+    const flexValue = document.getElementById('barcode-flex-value').value.trim();
+    const productLength = parseInt(document.getElementById('barcode-product-length').value);
+    const weightLength = parseInt(document.getElementById('barcode-weight-length').value);
+
+    if (isNaN(flexLength) || flexLength < 1) { showNotification('Panjang Flex harus angka positif', 'error'); return; }
+    if (!flexValue) { showNotification('Nilai Flex harus diisi', 'error'); return; }
+    if (isNaN(productLength) || productLength < 1) { showNotification('Panjang Kode Item harus angka positif', 'error'); return; }
+    if (isNaN(weightLength) || weightLength < 1) { showNotification('Panjang Berat harus angka positif', 'error'); return; }
+
+    const total = flexLength + productLength + weightLength;
+    if (total !== 13) {
+        showNotification(`Total panjang harus 13 digit, saat ini ${total}`, 'error');
+        return;
+    }
+
+    const newConfig = { flexLength, flexValue, productLength, weightLength };
+    try {
+        showLoading();
+        await saveBarcodeConfig(newConfig);
+        showNotification('Konfigurasi barcode tersimpan', 'success');
+        closeSettingsModal();
+    } catch (error) {
+        showNotification('Gagal menyimpan: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
 }
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').style.display = 'none';
 }
-
-async function saveBarcodeSettings() {
-    const flexLength = parseInt(document.getElementById('setting-flex-length').value) || 2;
-    const flexValue = document.getElementById('setting-flex-value').value || '02';
-    const productLength = parseInt(document.getElementById('setting-product-length').value) || 5;
-    const weightLength = parseInt(document.getElementById('setting-weight-length').value) || 6;
-    const config = { flexLength, flexValue, productLength, weightLength };
-    try {
-        await saveBarcodeConfig(config);
-        showNotification('Pengaturan barcode disimpan', 'success');
-        closeSettingsModal();
-    } catch (error) {
-        showNotification('Gagal menyimpan: ' + error.message, 'error');
-    }
-}
-
         // ==================== LOCALSTORAGE CART ====================
         const CART_STORAGE_KEY = 'pos_cart';
         const CUSTOMER_STORAGE_KEY = 'pos_selected_customer';
