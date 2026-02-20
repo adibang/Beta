@@ -669,6 +669,7 @@ function openTambahCustomerModal(editId = null) {
     const codeInput = document.getElementById('customer-code');
     const tierSelect = document.getElementById('customer-tier');
     const accountInput = document.getElementById('customer-account');
+    const bankInput = document.getElementById('customer-bank');      // <-- tambahkan ini
     const tokenInput = document.getElementById('customer-token');
     const emailInput = document.getElementById('customer-email');
     const phoneInput = document.getElementById('customer-phone');
@@ -682,6 +683,7 @@ function openTambahCustomerModal(editId = null) {
             codeInput.value = cust.code || '';
             tierSelect.value = cust.tier || 'Bronze';
             accountInput.value = cust.account || '';
+            bankInput.value = cust.bank || '';                      // <-- tambahkan ini
             tokenInput.value = cust.token || '';
             emailInput.value = cust.email || '';
             phoneInput.value = cust.phone || '';
@@ -695,6 +697,7 @@ function openTambahCustomerModal(editId = null) {
         codeInput.value = '';
         tierSelect.value = 'Bronze';
         accountInput.value = '';
+        bankInput.value = '';                                      // <-- tambahkan ini
         tokenInput.value = '';
         emailInput.value = '';
         phoneInput.value = '';
@@ -717,6 +720,7 @@ async function saveCustomer() {
     const code = document.getElementById('customer-code').value.trim();
     const tier = document.getElementById('customer-tier').value;
     const account = document.getElementById('customer-account').value.trim();
+    const bank = document.getElementById('customer-bank').value.trim();      // <-- tambahkan ini
     const token = document.getElementById('customer-token').value.trim();
     const email = document.getElementById('customer-email').value.trim();
     const phone = document.getElementById('customer-phone').value.trim();
@@ -735,6 +739,7 @@ async function saveCustomer() {
                 cust.code = code;
                 cust.tier = tier;
                 cust.account = account;
+                cust.bank = bank;                // <-- tambahkan ini
                 cust.token = token;
                 cust.email = email;
                 cust.phone = phone;
@@ -745,7 +750,7 @@ async function saveCustomer() {
             }
         } else {
             const newCust = { 
-                name, code, tier, account, token, email, phone, address, outstanding,
+                name, code, tier, account, bank, token, email, phone, address, outstanding,
                 createdAt: now, updatedAt: now 
             };
             const id = await dbAdd(STORES.CUSTOMERS, newCust);
@@ -799,6 +804,7 @@ function openDaftarCustomerModal() {
                         Telepon: ${cust.phone || '-'}<br>
                         Email: ${cust.email || '-'}<br>
                         Rekening: ${cust.account || '-'}<br>
+                        Bank: ${cust.bank || '-'}<br>   <!-- tambahkan baris ini -->
                         Token: ${cust.token || '-'}<br>
                         Alamat: ${cust.address || '-'}<br>
                         Piutang: ${formatRupiah(cust.outstanding || 0)}
