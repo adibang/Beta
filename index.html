@@ -1171,6 +1171,7 @@
             font-size: 14px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+        /* ==================== TOMBOL FLOATING DENGAN BADGE ==================== */
         .floating-btn {
             position: fixed;
             bottom: 20px;
@@ -1188,6 +1189,7 @@
             justify-content: center;
             z-index: 200;
             transition: transform 0.2s;
+            position: relative; /* agar badge bisa diposisikan absolut */
         }
         .floating-btn:hover {
             transform: scale(1.1);
@@ -1195,6 +1197,23 @@
         .floating-btn svg {
             width: 30px;
             height: 30px;
+        }
+        .pending-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            font-weight: bold;
+            padding: 0 4px;
         }
         .piutang-btn {
             width: 48px;
@@ -2150,7 +2169,27 @@
         </div>
     </div>
 
-    <!-- ==================== SETTINGS MODAL (DENGAN BAGIAN STRUK) ==================== -->
+    <!-- ==================== MODAL INPUT KODE PENDING (BARU) ==================== -->
+    <div class="modal-overlay" id="pending-code-modal">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Simpan Draft Transaksi</h2>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:8px; color:#333; font-weight:500;">Kode / Nama Pending</label>
+                    <input type="text" id="pending-code-input" class="form-input" placeholder="Misal: PENDING-001" autocomplete="off">
+                    <small style="color:#666;">Kosongkan untuk menggunakan nama default</small>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <button type="button" class="form-button-secondary" onclick="closePendingCodeModal()">Batal</button>
+                    <button type="button" class="form-button-primary" onclick="confirmSaveDraft()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SETTINGS MODAL ==================== -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-header">
@@ -2164,82 +2203,7 @@
             </div>
             <div class="modal-body">
                 <div id="settings-content">
-                    <!-- Bagian Manajemen Data -->
-                    <div style="margin-bottom:20px;">
-                        <div style="color:#333333;margin-bottom:10px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Data
-                        </div>
-                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportData()">${icons.upload} Export Data</button>
-                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importData()">${icons.download} Import Data</button>
-                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
-                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
-                    </div>
-                    
-                    <!-- Bagian Konfigurasi Barcode -->
-                    <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
-                        <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Panjang Digit Flex</label>
-                            <input type="number" id="barcode-flex-length" class="form-input" value="${barcodeConfig.flexLength}" min="1" max="5">
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Nilai Flex (misal 02)</label>
-                            <input type="text" id="barcode-flex-value" class="form-input" value="${barcodeConfig.flexValue}" maxlength="5">
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Panjang Digit Kode Item</label>
-                            <input type="number" id="barcode-product-length" class="form-input" value="${barcodeConfig.productLength}" min="1" max="10">
-                        </div>
-                        <div style="margin-bottom:15px;">
-                            <label style="display:block; margin-bottom:5px;">Panjang Digit Berat</label>
-                            <input type="number" id="barcode-weight-length" class="form-input" value="${barcodeConfig.weightLength}" min="1" max="10">
-                        </div>
-                        <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
-                        <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
-                    </div>
-
-                    <!-- ==================== BAGIAN PENGATURAN STRUK ==================== -->
-                    <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
-                        <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="15" width="12" height="6" rx="2"/></svg> Pengaturan Struk
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Lebar Kertas (jumlah karakter)</label>
-                            <input type="number" id="receipt-paper-width" class="form-input" value="${receiptConfig.paperWidth}" min="20" max="80">
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Header (pisahkan baris dengan \n)</label>
-                            <textarea id="receipt-header" class="form-input" rows="3">${receiptConfig.header.replace(/\n/g, '\\n')}</textarea>
-                            <small style="color:#666;">Gunakan \n untuk baris baru</small>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:block; margin-bottom:5px;">Footer (pisahkan baris dengan \n)</label>
-                            <textarea id="receipt-footer" class="form-input" rows="3">${receiptConfig.footer.replace(/\n/g, '\\n')}</textarea>
-                            <small style="color:#666;">Gunakan \n untuk baris baru</small>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:flex; align-items:center; gap:8px;">
-                                <input type="checkbox" id="receipt-show-datetime" ${receiptConfig.showDateTime ? 'checked' : ''}> Tampilkan Tanggal & Waktu
-                            </label>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:flex; align-items:center; gap:8px;">
-                                <input type="checkbox" id="receipt-show-transnum" ${receiptConfig.showTransactionNumber ? 'checked' : ''}> Tampilkan Nomor Transaksi
-                            </label>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="display:flex; align-items:center; gap:8px;">
-                                <input type="checkbox" id="receipt-show-cashier" ${receiptConfig.showCashier ? 'checked' : ''}> Tampilkan Nama Kasir
-                            </label>
-                        </div>
-                        <button class="form-button-primary" style="width:100%;" onclick="saveReceiptConfig()">Simpan Pengaturan Struk</button>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
-                        <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
-                    </div>
+                    <!-- Konten settings diisi oleh JavaScript -->
                 </div>
             </div>
         </div>
@@ -2262,12 +2226,13 @@
         </div>
     </div>
 
-    <!-- ==================== TOMBOL FLOATING UNTUK PENDING ==================== -->
+    <!-- ==================== TOMBOL FLOATING UNTUK PENDING DENGAN BADGE ==================== -->
     <button id="pending-transactions-btn" class="floating-btn" onclick="openPendingTransactionsModal()" title="Transaksi Pending">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
         </svg>
+        <span id="pending-badge" class="pending-badge" style="display: none;">0</span>
     </button>
 
     <!-- ==================== MODAL PENDING TRANSACTIONS ==================== -->
@@ -2530,7 +2495,7 @@
 
         // ==================== DATABASE CONFIGURATION ====================
         const DB_NAME = 'POSKasirDB';
-        const DB_VERSION = 15;
+        const DB_VERSION = 16; // naikkan versi karena ada perubahan struktur pending
         const STORES = {
             SETTINGS: 'settings',
             APP_STATE: 'appState',
@@ -2607,6 +2572,19 @@
             overlay.classList.toggle('show');
         }
         
+        // ==================== FUNGSI UPDATE BADGE PENDING ====================
+        function updatePendingBadge() {
+            const badge = document.getElementById('pending-badge');
+            if (!badge) return;
+            const count = pendingTransactions.length;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
         // ==================== SETTINGS MODAL ====================
         async function exportData() {
             try {
@@ -2706,6 +2684,7 @@
                     customers = [];
                     suppliers = [];
                     pendingTransactions = [];
+                    updatePendingBadge();
                     showNotification('Semua data berhasil dihapus!', 'success');
                 } catch (error) {
                     console.error('Error clearing data:', error);
@@ -3175,7 +3154,8 @@
                         supplierStore.createIndex('name', 'name', { unique: false });
                     }
                     if (!db.objectStoreNames.contains(STORES.PENDING_TRANSACTIONS)) {
-                        db.createObjectStore(STORES.PENDING_TRANSACTIONS, { keyPath: 'id', autoIncrement: true });
+                        const pendingStore = db.createObjectStore(STORES.PENDING_TRANSACTIONS, { keyPath: 'id', autoIncrement: true });
+                        // tambahkan index jika diperlukan
                     }
                     if (!db.objectStoreNames.contains(STORES.SALES)) {
                         const salesStore = db.createObjectStore(STORES.SALES, { keyPath: 'id', autoIncrement: true });
@@ -3333,7 +3313,14 @@
         }
 
         async function loadPendingTransactions() {
-            try { pendingTransactions = await dbGetAll(STORES.PENDING_TRANSACTIONS); } catch (error) { console.error('Error loading pending transactions:', error); pendingTransactions = []; }
+            try { 
+                pendingTransactions = await dbGetAll(STORES.PENDING_TRANSACTIONS); 
+                updatePendingBadge();
+            } catch (error) { 
+                console.error('Error loading pending transactions:', error); 
+                pendingTransactions = []; 
+                updatePendingBadge();
+            }
         }
 
         async function savePendingTransaction(transactionData) {
@@ -3343,6 +3330,7 @@
                 const id = await dbAdd(STORES.PENDING_TRANSACTIONS, data);
                 data.id = id;
                 pendingTransactions.push(data);
+                updatePendingBadge();
                 return data;
             } catch (error) {
                 console.error('Error saving pending transaction:', error);
@@ -3354,6 +3342,7 @@
             try {
                 await dbDelete(STORES.PENDING_TRANSACTIONS, id);
                 pendingTransactions = pendingTransactions.filter(t => t.id !== id);
+                updatePendingBadge();
             } catch (error) {
                 console.error('Error deleting pending transaction:', error);
                 throw error;
@@ -4522,7 +4511,7 @@
             }
         }
 
-        // ==================== FUNGSI PENDING TRANSACTIONS ====================
+        // ==================== FUNGSI PENDING TRANSACTIONS (DENGAN KODE PENDING) ====================
         function openPendingTransactionsModal() {
             const container = document.getElementById('pending-transactions-list');
             container.innerHTML = '';
@@ -4538,7 +4527,7 @@
                     div.style.borderBottom = '1px solid #eee';
                     div.innerHTML = `
                         <div style="flex:1;">
-                            <strong>Transaksi ${trans.id}</strong><br>
+                            <strong>${trans.pendingCode || 'Transaksi ' + trans.id}</strong><br>
                             <span style="font-size:0.8rem;">
                                 Tanggal: ${new Date(trans.createdAt).toLocaleString()}<br>
                                 Total: ${formatRupiah(trans.total)}<br>
@@ -4612,13 +4601,28 @@
             }
         }
 
-        async function saveDraftTransaction() {
+        // Fungsi untuk menyimpan draft dengan input kode pending
+        function saveDraftTransaction() {
             if (cart.length === 0) {
                 showNotification('Keranjang kosong, tidak ada yang disimpan', 'warning');
                 return;
             }
+            // Tampilkan modal input kode pending
+            document.getElementById('pending-code-input').value = '';
+            document.getElementById('pending-code-modal').style.display = 'flex';
+        }
+
+        function closePendingCodeModal() {
+            document.getElementById('pending-code-modal').style.display = 'none';
+        }
+
+        async function confirmSaveDraft() {
+            const pendingCode = document.getElementById('pending-code-input').value.trim();
+            closePendingCodeModal();
+
             const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
             const transactionData = {
+                pendingCode: pendingCode || `Pending ${new Date().toLocaleString()}`,
                 cart: cart.map(c => ({
                     itemId: c.item.id,
                     itemName: c.item.name,
@@ -4817,6 +4821,7 @@
                 else if (event.target.id === 'select-customer-modal') closeSelectCustomerModal();
                 else if (event.target.id === 'pending-transactions-modal') closePendingTransactionsModal();
                 else if (event.target.id === 'confirm-piutang-modal') closeConfirmPiutangModal();
+                else if (event.target.id === 'pending-code-modal') closePendingCodeModal();
             }
         };
 
