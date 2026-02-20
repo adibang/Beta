@@ -2150,7 +2150,7 @@
         </div>
     </div>
 
-    <!-- ==================== SETTINGS MODAL ==================== -->
+    <!-- ==================== SETTINGS MODAL (DENGAN BAGIAN STRUK) ==================== -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-header">
@@ -2163,7 +2163,84 @@
                 </h2>
             </div>
             <div class="modal-body">
-                <div id="settings-content"></div>
+                <div id="settings-content">
+                    <!-- Bagian Manajemen Data -->
+                    <div style="margin-bottom:20px;">
+                        <div style="color:#333333;margin-bottom:10px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Data
+                        </div>
+                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportData()">${icons.upload} Export Data</button>
+                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importData()">${icons.download} Import Data</button>
+                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
+                        <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
+                    </div>
+                    
+                    <!-- Bagian Konfigurasi Barcode -->
+                    <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+                        <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Panjang Digit Flex</label>
+                            <input type="number" id="barcode-flex-length" class="form-input" value="${barcodeConfig.flexLength}" min="1" max="5">
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Nilai Flex (misal 02)</label>
+                            <input type="text" id="barcode-flex-value" class="form-input" value="${barcodeConfig.flexValue}" maxlength="5">
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Panjang Digit Kode Item</label>
+                            <input type="number" id="barcode-product-length" class="form-input" value="${barcodeConfig.productLength}" min="1" max="10">
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block; margin-bottom:5px;">Panjang Digit Berat</label>
+                            <input type="number" id="barcode-weight-length" class="form-input" value="${barcodeConfig.weightLength}" min="1" max="10">
+                        </div>
+                        <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
+                        <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
+                    </div>
+
+                    <!-- ==================== BAGIAN PENGATURAN STRUK ==================== -->
+                    <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+                        <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="15" width="12" height="6" rx="2"/></svg> Pengaturan Struk
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Lebar Kertas (jumlah karakter)</label>
+                            <input type="number" id="receipt-paper-width" class="form-input" value="${receiptConfig.paperWidth}" min="20" max="80">
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Header (pisahkan baris dengan \n)</label>
+                            <textarea id="receipt-header" class="form-input" rows="3">${receiptConfig.header.replace(/\n/g, '\\n')}</textarea>
+                            <small style="color:#666;">Gunakan \n untuk baris baru</small>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:5px;">Footer (pisahkan baris dengan \n)</label>
+                            <textarea id="receipt-footer" class="form-input" rows="3">${receiptConfig.footer.replace(/\n/g, '\\n')}</textarea>
+                            <small style="color:#666;">Gunakan \n untuk baris baru</small>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" id="receipt-show-datetime" ${receiptConfig.showDateTime ? 'checked' : ''}> Tampilkan Tanggal & Waktu
+                            </label>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" id="receipt-show-transnum" ${receiptConfig.showTransactionNumber ? 'checked' : ''}> Tampilkan Nomor Transaksi
+                            </label>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <label style="display:flex; align-items:center; gap:8px;">
+                                <input type="checkbox" id="receipt-show-cashier" ${receiptConfig.showCashier ? 'checked' : ''}> Tampilkan Nama Kasir
+                            </label>
+                        </div>
+                        <button class="form-button-primary" style="width:100%;" onclick="saveReceiptConfig()">Simpan Pengaturan Struk</button>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
+                        <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2475,6 +2552,15 @@
             productLength: 5,
             weightLength: 6
         };
+        // Default receipt config
+        let receiptConfig = {
+            paperWidth: 32,
+            header: "TOKO LOKABUMBU\nJl. Raya No. 123\nTelp: 08123456789",
+            footer: "Terima kasih\nSelamat berbelanja kembali",
+            showDateTime: true,
+            showTransactionNumber: true,
+            showCashier: false
+        };
         let kasirCategories = [];
         let kasirItems = [];
         let kasirSatuan = [];
@@ -2656,7 +2742,93 @@
             }
         }
 
+        // Fungsi untuk memuat konfigurasi struk dari database
+        async function loadReceiptConfig() {
+            try {
+                const transaction = db.transaction([STORES.SETTINGS], 'readonly');
+                const store = transaction.objectStore(STORES.SETTINGS);
+                const request = store.get('receiptConfig');
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => {
+                        if (request.result) {
+                            receiptConfig = request.result.value;
+                        } else {
+                            receiptConfig = {
+                                paperWidth: 32,
+                                header: "TOKO LOKABUMBU\nJl. Raya No. 123\nTelp: 08123456789",
+                                footer: "Terima kasih\nSelamat berbelanja kembali",
+                                showDateTime: true,
+                                showTransactionNumber: true,
+                                showCashier: false
+                            };
+                        }
+                        resolve();
+                    };
+                    request.onerror = (e) => reject(e.target.error);
+                });
+            } catch (error) {
+                console.error('Error loading receipt config:', error);
+                receiptConfig = {
+                    paperWidth: 32,
+                    header: "TOKO LOKABUMBU\nJl. Raya No. 123\nTelp: 08123456789",
+                    footer: "Terima kasih\nSelamat berbelanja kembali",
+                    showDateTime: true,
+                    showTransactionNumber: true,
+                    showCashier: false
+                };
+            }
+        }
+
+        async function saveReceiptConfig() {
+            const paperWidth = parseInt(document.getElementById('receipt-paper-width').value);
+            if (isNaN(paperWidth) || paperWidth < 10) {
+                showNotification('Lebar kertas minimal 10 karakter', 'error');
+                return;
+            }
+
+            const headerRaw = document.getElementById('receipt-header').value;
+            const footerRaw = document.getElementById('receipt-footer').value;
+            // Ganti \n literal dengan newline
+            const header = headerRaw.replace(/\\n/g, '\n');
+            const footer = footerRaw.replace(/\\n/g, '\n');
+
+            const showDateTime = document.getElementById('receipt-show-datetime').checked;
+            const showTransactionNumber = document.getElementById('receipt-show-transnum').checked;
+            const showCashier = document.getElementById('receipt-show-cashier').checked;
+
+            const newConfig = {
+                paperWidth,
+                header,
+                footer,
+                showDateTime,
+                showTransactionNumber,
+                showCashier
+            };
+
+            try {
+                showLoading();
+                const transaction = db.transaction([STORES.SETTINGS], 'readwrite');
+                const store = transaction.objectStore(STORES.SETTINGS);
+                const data = { key: 'receiptConfig', value: newConfig };
+                await new Promise((resolve, reject) => {
+                    const request = store.put(data);
+                    request.onsuccess = () => {
+                        receiptConfig = newConfig;
+                        resolve();
+                    };
+                    request.onerror = (e) => reject(e.target.error);
+                });
+                showNotification('Pengaturan struk tersimpan', 'success');
+                closeSettingsModal();
+            } catch (error) {
+                showNotification('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
         function showSettingsModal() {
+            // Update nilai di dalam settings-content dengan nilai terbaru dari receiptConfig
             const settingsContent = document.getElementById('settings-content');
             settingsContent.innerHTML = `
                 <div style="margin-bottom:20px;">
@@ -2691,10 +2863,49 @@
                     <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">Total panjang harus 13 digit. Saat ini: <span id="total-digits-display">${barcodeConfig.flexLength + barcodeConfig.productLength + barcodeConfig.weightLength}</span></div>
                     <button class="form-button-primary" style="width:100%;" onclick="saveBarcodeConfigFromUI()">Simpan Konfigurasi Barcode</button>
                 </div>
+
+                <!-- ==================== BAGIAN PENGATURAN STRUK ==================== -->
+                <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+                    <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="15" width="12" height="6" rx="2"/></svg> Pengaturan Struk
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Lebar Kertas (jumlah karakter)</label>
+                        <input type="number" id="receipt-paper-width" class="form-input" value="${receiptConfig.paperWidth}" min="20" max="80">
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Header (pisahkan baris dengan \\n)</label>
+                        <textarea id="receipt-header" class="form-input" rows="3">${receiptConfig.header.replace(/\n/g, '\\n')}</textarea>
+                        <small style="color:#666;">Gunakan \\n untuk baris baru</small>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px;">Footer (pisahkan baris dengan \\n)</label>
+                        <textarea id="receipt-footer" class="form-input" rows="3">${receiptConfig.footer.replace(/\n/g, '\\n')}</textarea>
+                        <small style="color:#666;">Gunakan \\n untuk baris baru</small>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="receipt-show-datetime" ${receiptConfig.showDateTime ? 'checked' : ''}> Tampilkan Tanggal & Waktu
+                        </label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="receipt-show-transnum" ${receiptConfig.showTransactionNumber ? 'checked' : ''}> Tampilkan Nomor Transaksi
+                        </label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="receipt-show-cashier" ${receiptConfig.showCashier ? 'checked' : ''}> Tampilkan Nama Kasir
+                        </label>
+                    </div>
+                    <button class="form-button-primary" style="width:100%;" onclick="saveReceiptConfig()">Simpan Pengaturan Struk</button>
+                </div>
+
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:20px;">
                     <button class="form-button-secondary" onclick="closeSettingsModal()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#333333;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> TUTUP</button>
                 </div>
             `;
+            // Event listener untuk update total digit barcode
             const flexLen = document.getElementById('barcode-flex-length');
             const prodLen = document.getElementById('barcode-product-length');
             const weightLen = document.getElementById('barcode-weight-length');
@@ -3783,7 +3994,8 @@
                     total: total,
                     paidAmount: paidTotal,
                     change: change,
-                    date: new Date().toLocaleString('id-ID')
+                    date: new Date().toLocaleString('id-ID'),
+                    transactionNumber: transactionNumber
                 };
 
                 await loadKasirItems();
@@ -3812,7 +4024,155 @@
             pendingTotalPaid = 0;
         }
 
-        // ==================== FUNGSI PRINT VIA WEB SERIAL ====================
+        // ==================== FUNGSI PRINT VIA WEB SERIAL (DENGAN KONFIGURASI STRUK) ====================
+        // Fungsi untuk memotong teks agar tidak melebihi lebar kertas
+        function wrapText(text, maxWidth) {
+            if (!text) return [];
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (let word of words) {
+                // Jika satu kata lebih panjang dari maxWidth, paksa potong
+                if (word.length > maxWidth) {
+                    // Jika currentLine tidak kosong, push dulu
+                    if (currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = '';
+                    }
+                    // Potong kata menjadi beberapa bagian
+                    for (let i = 0; i < word.length; i += maxWidth) {
+                        lines.push(word.substr(i, maxWidth));
+                    }
+                } else {
+                    if (currentLine.length + word.length + 1 > maxWidth) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        if (currentLine.length === 0) {
+                            currentLine = word;
+                        } else {
+                            currentLine += ' ' + word;
+                        }
+                    }
+                }
+            }
+            if (currentLine.length > 0) {
+                lines.push(currentLine);
+            }
+            return lines;
+        }
+
+        async function printReceipt() {
+            if (!printerPort) {
+                showNotification('Printer belum terhubung', 'error');
+                return;
+            }
+
+            let dataToPrint = lastTransactionData;
+            if (!dataToPrint) {
+                if (cart.length === 0) {
+                    showNotification('Tidak ada data untuk dicetak', 'warning');
+                    return;
+                }
+                const total = cart.reduce((s, c) => s + c.subtotal, 0);
+                dataToPrint = {
+                    items: cart.map(c => ({
+                        name: c.item.name,
+                        qty: c.qty,
+                        unit: c.unitConversion ? (kasirSatuan.find(s => s.id == c.unitConversion.unit)?.name || '?') : (c.weightGram ? 'kg' : 'pcs'),
+                        price: c.pricePerUnit,
+                        subtotal: c.subtotal
+                    })),
+                    total: total,
+                    paidAmount: total,
+                    change: 0,
+                    date: new Date().toLocaleString('id-ID'),
+                    transactionNumber: 'DRAFT'
+                };
+            }
+
+            const { paperWidth, header, footer, showDateTime, showTransactionNumber, showCashier } = receiptConfig;
+
+            try {
+                const writer = printerPort.writable.getWriter();
+                const encoder = new TextEncoder();
+                let receipt = '\n';
+
+                // Header
+                const headerLines = header.split('\n');
+                headerLines.forEach(line => {
+                    const wrapped = wrapText(line, paperWidth);
+                    wrapped.forEach(l => {
+                        receipt += l.padEnd(paperWidth) + '\n';
+                    });
+                });
+                receipt += '='.repeat(paperWidth) + '\n';
+
+                // Tanggal & waktu
+                if (showDateTime) {
+                    receipt += `Tanggal: ${new Date().toLocaleString('id-ID')}\n`;
+                }
+                if (showTransactionNumber && dataToPrint.transactionNumber) {
+                    receipt += `No.    : ${dataToPrint.transactionNumber}\n`;
+                }
+                if (showCashier) {
+                    receipt += `Kasir  : Admin\n`; // bisa diganti dengan nama kasir jika ada
+                }
+                receipt += '-'.repeat(paperWidth) + '\n';
+
+                // Item
+                dataToPrint.items.forEach(item => {
+                    const nameWrapped = wrapText(item.name, paperWidth - 5);
+                    nameWrapped.forEach((line, idx) => {
+                        if (idx === 0) {
+                            receipt += line + '\n';
+                        } else {
+                            receipt += '     ' + line + '\n';
+                        }
+                    });
+                    const qtyStr = `${item.qty} ${item.unit} x ${formatRupiah(item.price)}`;
+                    const subtotalStr = formatRupiah(item.subtotal);
+                    const line = qtyStr + ' '.repeat(Math.max(1, paperWidth - qtyStr.length - subtotalStr.length)) + subtotalStr;
+                    receipt += line + '\n';
+                });
+
+                receipt += '-'.repeat(paperWidth) + '\n';
+
+                // Total
+                const totalLabel = 'Total';
+                const totalVal = formatRupiah(dataToPrint.total);
+                receipt += totalLabel + ' '.repeat(paperWidth - totalLabel.length - totalVal.length) + totalVal + '\n';
+
+                const paidLabel = 'Bayar';
+                const paidVal = formatRupiah(dataToPrint.paidAmount);
+                receipt += paidLabel + ' '.repeat(paperWidth - paidLabel.length - paidVal.length) + paidVal + '\n';
+
+                const changeLabel = 'Kembali';
+                const changeVal = formatRupiah(dataToPrint.change);
+                receipt += changeLabel + ' '.repeat(paperWidth - changeLabel.length - changeVal.length) + changeVal + '\n';
+
+                receipt += '='.repeat(paperWidth) + '\n';
+
+                // Footer
+                const footerLines = footer.split('\n');
+                footerLines.forEach(line => {
+                    const wrapped = wrapText(line, paperWidth);
+                    wrapped.forEach(l => {
+                        receipt += l.padEnd(paperWidth) + '\n';
+                    });
+                });
+
+                receipt += '\n\n\n'; // potong kertas
+
+                await writer.write(encoder.encode(receipt));
+                writer.releaseLock();
+                showNotification('Struk berhasil dicetak', 'success');
+            } catch (error) {
+                console.error('Error printing:', error);
+                showNotification('Gagal mencetak: ' + error.message, 'error');
+            }
+        }
+
         async function togglePrinter() {
             if (printerPort) {
                 try {
@@ -3870,63 +4230,6 @@
                 }
             } catch (error) {
                 console.warn('Auto reconnect printer failed:', error);
-            }
-        }
-
-        async function printReceipt() {
-            if (!printerPort) {
-                showNotification('Printer belum terhubung', 'error');
-                return;
-            }
-
-            let dataToPrint = lastTransactionData;
-            if (!dataToPrint) {
-                if (cart.length === 0) {
-                    showNotification('Tidak ada data untuk dicetak', 'warning');
-                    return;
-                }
-                const total = cart.reduce((s, c) => s + c.subtotal, 0);
-                dataToPrint = {
-                    items: cart.map(c => ({
-                        name: c.item.name,
-                        qty: c.qty,
-                        unit: c.unitConversion ? (kasirSatuan.find(s => s.id == c.unitConversion.unit)?.name || '?') : (c.weightGram ? 'kg' : 'pcs'),
-                        price: c.pricePerUnit,
-                        subtotal: c.subtotal
-                    })),
-                    total: total,
-                    paidAmount: total,
-                    change: 0,
-                    date: new Date().toLocaleString('id-ID')
-                };
-            }
-
-            try {
-                const writer = printerPort.writable.getWriter();
-                const encoder = new TextEncoder();
-                let receipt = '\n';
-                receipt += '         TOKO LOKABUMBU\n';
-                receipt += '================================\n';
-                receipt += dataToPrint.date + '\n';
-                receipt += '--------------------------------\n';
-                dataToPrint.items.forEach(item => {
-                    receipt += `${item.name}\n  ${item.qty} x ${formatRupiah(item.price)} = ${formatRupiah(item.subtotal)}\n`;
-                });
-                receipt += '--------------------------------\n';
-                receipt += `Total:          ${formatRupiah(dataToPrint.total)}\n`;
-                receipt += `Bayar:          ${formatRupiah(dataToPrint.paidAmount)}\n`;
-                receipt += `Kembali:        ${formatRupiah(dataToPrint.change)}\n`;
-                receipt += '--------------------------------\n';
-                receipt += '        Terima kasih\n';
-                receipt += 'delivery order via WA\n';
-                receipt += '0823xxxxxxxx\n';
-                receipt += '\n\n\n';
-                await writer.write(encoder.encode(receipt));
-                writer.releaseLock();
-                showNotification('Struk berhasil dicetak', 'success');
-            } catch (error) {
-                console.error('Error printing:', error);
-                showNotification('Gagal mencetak: ' + error.message, 'error');
             }
         }
 
@@ -4408,6 +4711,52 @@
             else if (type === 'warning') playWarningSound();
         }
 
+        // ==================== FUNGSI GENERATE NOMOR TRANSAKSI ====================
+        async function generateTransactionNumber() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}${month}${day}`;
+
+            let lastCounter = 0;
+            try {
+                const transaction = db.transaction([STORES.SETTINGS], 'readonly');
+                const store = transaction.objectStore(STORES.SETTINGS);
+                const request = store.get('lastTransactionNumber');
+                await new Promise((resolve, reject) => {
+                    request.onsuccess = () => {
+                        if (request.result) {
+                            const data = request.result.value;
+                            if (data.date === dateStr) {
+                                lastCounter = data.counter;
+                            } else {
+                                lastCounter = 0;
+                            }
+                        }
+                        resolve();
+                    };
+                    request.onerror = reject;
+                });
+            } catch (error) {
+                console.warn('Gagal membaca counter transaksi:', error);
+            }
+
+            const newCounter = lastCounter + 1;
+            const transactionNumber = `INV-${dateStr}-${String(newCounter).padStart(5, '0')}`;
+
+            try {
+                await dbPut(STORES.SETTINGS, {
+                    key: 'lastTransactionNumber',
+                    value: { date: dateStr, counter: newCounter }
+                });
+            } catch (error) {
+                console.error('Gagal menyimpan counter transaksi:', error);
+            }
+
+            return transactionNumber;
+        }
+
         // ==================== INITIALIZATION ====================
         async function initApp() {
             try {
@@ -4416,6 +4765,7 @@
                 hideError();
                 await initDatabase();
                 await loadBarcodeConfig();
+                await loadReceiptConfig(); // tambahkan ini
                 await loadKasirCategories();
                 await loadKasirItems();
                     currentFilteredItems = [...kasirItems]; // setelah items dimuat
