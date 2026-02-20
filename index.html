@@ -1542,7 +1542,7 @@
             </div>
         </div>
         <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="barcode-input" class="form-input" placeholder="Scan barcode..." onkeypress="if(event.key==='Enter') processBarcode()" style="flex: 2; min-width: 200px;">
+            <input type="text" id="barcode-input" class="form-input" placeholder="Cari produk atau scan barcode..." oninput="filterProductList(this.value)" onkeypress="if(event.key==='Enter') processBarcode()" style="flex: 2; min-width: 200px;">
             <button id="customer-select-btn" class="action-btn" onclick="openSelectCustomerModal()" title="Pilih Pelanggan">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="8" r="4"/>
@@ -2480,6 +2480,7 @@
         let selectedCustomer = null;
         let tempUnitConversions = [];
         let editingConversionIndex = -1;
+        let currentFilteredItems = []; // untuk menyimpan hasil pencarian
         let cart = [];
         let productViewMode = 'list';
         let lastTransactionData = null;
@@ -3224,7 +3225,12 @@
             document.getElementById('transaksi-page').style.display = 'block';
             document.getElementById('cart-page').style.display = 'none';
             document.getElementById('payment-page').style.display = 'none';
-            renderProductList();
+            
+            // Reset filter dan tampilkan semua produk
+            currentFilteredItems = [...kasirItems];
+            renderProductList(currentFilteredItems);
+            document.getElementById('barcode-input').value = ''; // kosongkan input
+            
             renderCartPage();
             updatePiutangButtonCart();
             setTimeout(() => document.getElementById('barcode-input').focus(), 100);
@@ -3313,52 +3319,68 @@
             const input = document.getElementById('barcode-input');
             const barcode = input.value.trim();
             if (!barcode) return;
-
+        
+            console.log('Processing barcode:', barcode);
+        
+            // 1. Cari berdasarkan kode item atau barcode item
             let item = kasirItems.find(i => i.code === barcode || i.barcode === barcode);
             if (item) {
                 addToCart(item, 1, null, 0);
                 input.value = '';
+                filterProductList(''); // reset filter ke semua produk
                 return;
             }
-
+        
+            // 2. Cari berdasarkan barcode satuan (unitConversions)
             for (let it of kasirItems) {
-                if (it.unitConversions) {
+                if (it.unitConversions && Array.isArray(it.unitConversions)) {
                     const conv = it.unitConversions.find(c => c.barcode === barcode);
                     if (conv) {
                         addToCart(it, 1, conv, 0);
                         input.value = '';
+                        filterProductList('');
                         return;
                     }
                 }
             }
-
+        
+            // 3. Cek apakah ini barcode timbangan (13 digit)
             if (barcode.length === 13) {
                 const flex = barcode.substr(0, barcodeConfig.flexLength);
                 if (flex !== barcodeConfig.flexValue) {
-                    showNotification('Barcode tidak dikenal', 'error');
+                    showNotification('Barcode tidak dikenal (flex tidak cocok)', 'error');
                     input.value = '';
+                    filterProductList('');
                     return;
                 }
-
+        
                 const productCode = barcode.substr(barcodeConfig.flexLength, barcodeConfig.productLength);
                 const weightStr = barcode.substr(barcodeConfig.flexLength + barcodeConfig.productLength, barcodeConfig.weightLength);
                 const weightGram = parseInt(weightStr, 10);
-
+        
                 if (!isNaN(weightGram) && weightGram > 0) {
                     item = kasirItems.find(i => i.code === productCode && i.isWeighable === true);
                     if (item) {
                         const qtyKg = weightGram / 1000;
                         addToCart(item, qtyKg, null, weightGram);
                         input.value = '';
+                        filterProductList('');
+                        return;
+                    } else {
+                        showNotification('Produk dengan kode ' + productCode + ' tidak ditemukan atau bukan produk timbangan', 'error');
+                        input.value = '';
+                        filterProductList('');
                         return;
                     }
                 }
             }
-
+        
+            // 4. Jika tidak ditemukan sama sekali
             showNotification('Produk tidak ditemukan', 'error');
             input.value = '';
+            filterProductList(''); // tetap reset filter agar input bersih
         }
-
+        
         function openCartPage() {
             document.querySelector('.main-content').style.display = 'none';
             document.getElementById('transaksi-page').style.display = 'none';
@@ -4027,17 +4049,20 @@
             renderProductList();
         }
 
-        function renderProductList() {
+        function renderProductList(itemsToRender = null) {
             const container = document.getElementById('product-container');
             if (!container) return;
-            if (!kasirItems || kasirItems.length === 0) {
+        
+            const items = itemsToRender || kasirItems;
+            if (!items || items.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:20px;">Tidak ada produk</div>';
                 return;
             }
+        
             let html = '';
             if (productViewMode === 'list') {
                 html = '<div class="product-list">';
-                kasirItems.forEach(item => {
+                items.forEach(item => {
                     let step = item.isWeighable ? '0.01' : '1';
                     let min = '0.01';
                     html += `
@@ -4058,7 +4083,7 @@
                 html += '</div>';
             } else {
                 html = '<div class="product-grid">';
-                kasirItems.forEach(item => {
+                items.forEach(item => {
                     let step = item.isWeighable ? '0.01' : '1';
                     let min = '0.01';
                     html += `
@@ -4086,6 +4111,33 @@
                 html += '</div>';
             }
             container.innerHTML = html;
+        }
+
+        function filterProductList(keyword) {
+            keyword = keyword.toLowerCase().trim();
+            if (!keyword) {
+                // Tampilkan semua produk
+                currentFilteredItems = [...kasirItems];
+            } else {
+                // Filter berdasarkan nama, kode, barcode, dan barcode satuan
+                currentFilteredItems = kasirItems.filter(item => {
+                    // Cek nama, kode, barcode item
+                    const matchItem = 
+                        (item.name && item.name.toLowerCase().includes(keyword)) ||
+                        (item.code && item.code.toLowerCase().includes(keyword)) ||
+                        (item.barcode && item.barcode.toLowerCase().includes(keyword));
+                    if (matchItem) return true;
+        
+                    // Cek barcode satuan
+                    if (item.unitConversions && Array.isArray(item.unitConversions)) {
+                        return item.unitConversions.some(conv => 
+                            conv.barcode && conv.barcode.toLowerCase().includes(keyword)
+                        );
+                    }
+                    return false;
+                });
+            }
+            renderProductList(currentFilteredItems);
         }
 
         function adjustQty(btn, delta, itemId) {
@@ -4321,6 +4373,7 @@
                 await loadBarcodeConfig();
                 await loadKasirCategories();
                 await loadKasirItems();
+                    currentFilteredItems = [...kasirItems]; // setelah items dimuat
                 await loadKasirSatuan();
                 await loadCustomers();
                 await loadSuppliers();
