@@ -403,7 +403,7 @@
             gap: 10px;
             justify-content: flex-end;
         }
-        /* ==================== HALAMAN PEMBAYARAN ==================== */
+        /* ==================== HALAMAN PEMBAYARAN (MODIFIKASI) ==================== */
         #payment-page {
             max-width: 1200px;
             margin: 0 auto;
@@ -445,36 +445,34 @@
             border-top: 1px solid #ddd;
             padding-top: 10px;
         }
-        .payment-method {
+        /* Grid metode pembayaran */
+        .payment-methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
-        .payment-method label {
+        .payment-method-item {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+        .payment-method-item label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            color: #006B54;
         }
-        .payment-method select {
+        .payment-method-item input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #333;
+            padding: 10px;
+            border: 1px solid #006B54;
             border-radius: 15px;
             font-size: 1rem;
+            text-align: right;
         }
-        .payment-amount {
-            margin-bottom: 20px;
-        }
-        .payment-amount label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .payment-amount input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #333;
-            border-radius: 15px;
-            font-size: 1rem;
-        }
+        /* Informasi kekurangan / kembalian */
         #shortage-display {
             display: none;
             margin-bottom: 15px;
@@ -1597,7 +1595,7 @@
         </div>
     </div>
 
-    <!-- ==================== HALAMAN PEMBAYARAN ==================== -->
+    <!-- ==================== HALAMAN PEMBAYARAN (MODIFIKASI) ==================== -->
     <div id="payment-page">
         <div class="payment-header">
             <button class="back-button" onclick="closePaymentPage()" title="Kembali ke Keranjang">
@@ -1619,28 +1617,39 @@
                     <span id="payment-grand-total">Rp 0</span>
                 </div>
             </div>
-            <div class="payment-method">
-                <label>Metode Pembayaran</label>
-                <select id="payment-method-select" onchange="togglePaymentFields()">
-                    <option value="cash">Tunai</option>
-                    <option value="card">Kartu Debit/Kredit</option>
-                    <option value="transfer">Transfer Bank</option>
-                </select>
-            </div>
-            <div id="cash-payment-fields">
-                <div class="payment-amount">
-                    <label>Jumlah Bayar</label>
-                    <input type="number" id="payment-amount" min="0" step="0.01" oninput="calculateChange()" placeholder="Masukkan jumlah bayar">
+
+            <!-- Grid metode pembayaran -->
+            <div class="payment-methods-grid">
+                <div class="payment-method-item">
+                    <label>Tunai</label>
+                    <input type="number" id="payment-cash" class="payment-input" min="0" step="0.01" value="0" oninput="updatePaymentSummary()">
                 </div>
-                <div id="shortage-display" style="display:none; color:red; margin-bottom:10px; padding:10px; background:#fff3f3; border-radius:10px;">
-                    Kurang bayar: Rp <span id="shortage-amount">0</span>
+                <div class="payment-method-item">
+                    <label>Kartu Debit/Kredit</label>
+                    <input type="number" id="payment-card" class="payment-input" min="0" step="0.01" value="0" oninput="updatePaymentSummary()">
                 </div>
-                <div class="change-amount" id="change-amount">Kembalian: Rp 0</div>
+                <div class="payment-method-item">
+                    <label>Transfer Bank</label>
+                    <input type="number" id="payment-transfer" class="payment-input" min="0" step="0.01" value="0" oninput="updatePaymentSummary()">
+                </div>
+                <div class="payment-method-item">
+                    <label>E-Wallet</label>
+                    <input type="number" id="payment-ewallet" class="payment-input" min="0" step="0.01" value="0" oninput="updatePaymentSummary()">
+                </div>
             </div>
+
+            <!-- Informasi kekurangan / kembalian -->
+            <div id="shortage-display" style="display:none; color:red; margin-bottom:10px; padding:10px; background:#fff3f3; border-radius:10px;">
+                Kurang bayar: Rp <span id="shortage-amount">0</span>
+            </div>
+            <div class="change-amount" id="change-amount">Kembalian: Rp 0</div>
+
             <div class="payment-actions">
                 <button class="form-button-secondary" onclick="closePaymentPage()">Batal</button>
                 <button class="form-button-primary" onclick="processPayment()">Proses Pembayaran</button>
             </div>
+
+            <!-- Bagian printer -->
             <div class="printer-section">
                 <button id="connect-printer-btn" class="form-button-secondary" onclick="togglePrinter()">
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
@@ -2487,8 +2496,9 @@
 
         // Variabel untuk printer serial
         let printerPort = null;
-        let pendingPaymentMethod = null;
-        let pendingPaidAmount = 0;
+        // Variabel untuk pembayaran kombinasi
+        let pendingPayments = [];       // menyimpan sementara pembayaran sebelum konfirmasi piutang
+        let pendingTotalPaid = 0;
 
         // ==================== VARIABEL UNTUK LOGIN OVERLAY ====================
         let loginTapCount = 0;
@@ -3493,9 +3503,7 @@
             if (document.getElementById('payment-page').style.display === 'block') {
                 const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
                 document.getElementById('payment-total').textContent = formatRupiah(total);
-                document.getElementById('payment-grand-total').textContent = formatRupiah(total);
-                document.getElementById('payment-amount').value = '';
-                calculateChange();
+                updatePaymentSummary();
             }
         }
 
@@ -3553,12 +3561,16 @@
             }
             document.getElementById('cart-page').style.display = 'none';
             document.getElementById('payment-page').style.display = 'block';
+
+            // Reset semua input ke 0
+            document.getElementById('payment-cash').value = '0';
+            document.getElementById('payment-card').value = '0';
+            document.getElementById('payment-transfer').value = '0';
+            document.getElementById('payment-ewallet').value = '0';
+
             const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
             document.getElementById('payment-total').textContent = formatRupiah(total);
-            document.getElementById('payment-grand-total').textContent = formatRupiah(total);
-            document.getElementById('payment-amount').value = '';
-            document.getElementById('shortage-display').style.display = 'none';
-            calculateChange();
+            updatePaymentSummary(); // hitung ulang
         }
 
         function closePaymentPage() {
@@ -3566,111 +3578,77 @@
             document.getElementById('cart-page').style.display = 'block';
         }
 
-        function togglePaymentFields() {
-            const method = document.getElementById('payment-method-select').value;
-            const cashFields = document.getElementById('cash-payment-fields');
-            if (method === 'cash') {
-                cashFields.style.display = 'block';
-            } else {
-                cashFields.style.display = 'none';
-            }
-        }
-
-        function calculateChange() {
+        // Fungsi baru untuk memperbarui total dibayar dan kekurangan
+        function updatePaymentSummary() {
             const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
-            const paid = parseFloat(document.getElementById('payment-amount').value) || 0;
-            const change = paid - total;
-            document.getElementById('change-amount').textContent = `Kembalian: ${formatRupiah(change >= 0 ? change : 0)}`;
-            if (change < 0) {
-                document.getElementById('change-amount').style.color = 'red';
-                const shortage = total - paid;
-                document.getElementById('shortage-display').style.display = 'block';
-                document.getElementById('shortage-amount').textContent = formatRupiah(shortage);
+            const cash = parseFloat(document.getElementById('payment-cash').value) || 0;
+            const card = parseFloat(document.getElementById('payment-card').value) || 0;
+            const transfer = parseFloat(document.getElementById('payment-transfer').value) || 0;
+            const ewallet = parseFloat(document.getElementById('payment-ewallet').value) || 0;
+            const paidTotal = cash + card + transfer + ewallet;
+
+            document.getElementById('payment-grand-total').textContent = formatRupiah(paidTotal);
+
+            const change = paidTotal - total;
+            const changeEl = document.getElementById('change-amount');
+            const shortageEl = document.getElementById('shortage-display');
+            const shortageAmount = document.getElementById('shortage-amount');
+
+            if (change >= 0) {
+                changeEl.textContent = `Kembalian: ${formatRupiah(change)}`;
+                changeEl.style.color = '#006B54';
+                shortageEl.style.display = 'none';
             } else {
-                document.getElementById('change-amount').style.color = '#006B54';
-                document.getElementById('shortage-display').style.display = 'none';
+                changeEl.textContent = `Kembalian: Rp 0`; // tidak ada kembalian jika kurang
+                changeEl.style.color = 'red';
+                shortageEl.style.display = 'block';
+                shortageAmount.textContent = formatRupiah(total - paidTotal);
             }
         }
 
         async function processPayment() {
             if (cart.length === 0) return;
-            const method = document.getElementById('payment-method-select').value;
-            let paidAmount;
-            if (method === 'cash') {
-                paidAmount = parseFloat(document.getElementById('payment-amount').value) || 0;
-            } else {
-                paidAmount = cart.reduce((sum, c) => sum + c.subtotal, 0);
-            }
+
             const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
-            const shortage = total - paidAmount;
+            const cash = parseFloat(document.getElementById('payment-cash').value) || 0;
+            const card = parseFloat(document.getElementById('payment-card').value) || 0;
+            const transfer = parseFloat(document.getElementById('payment-transfer').value) || 0;
+            const ewallet = parseFloat(document.getElementById('payment-ewallet').value) || 0;
+
+            const paidTotal = cash + card + transfer + ewallet;
+            const shortage = total - paidTotal;
+
             if (shortage > 0) {
                 if (!selectedCustomer) {
                     showNotification('Untuk mencatat piutang, harus pilih pelanggan terlebih dahulu', 'error');
                     return;
                 }
+                // Simpan data pembayaran sementara
+                pendingPayments = [
+                    { method: 'cash', amount: cash },
+                    { method: 'card', amount: card },
+                    { method: 'transfer', amount: transfer },
+                    { method: 'ewallet', amount: ewallet }
+                ].filter(p => p.amount > 0);
+                pendingTotalPaid = paidTotal;
+
                 document.getElementById('shortage-confirm').textContent = formatRupiah(shortage);
-                pendingPaymentMethod = method;
-                pendingPaidAmount = paidAmount;
                 document.getElementById('confirm-piutang-modal').style.display = 'flex';
                 return;
             }
-            await executePayment(method, paidAmount, 0);
+
+            // Jika lunas, langsung proses
+            await executePayment(paidTotal, 0);
         }
 
         async function processPaymentWithPiutang() {
             closeConfirmPiutangModal();
             const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
-            const shortage = total - pendingPaidAmount;
-            await executePayment(pendingPaymentMethod, pendingPaidAmount, shortage);
+            const shortage = total - pendingTotalPaid;
+            await executePayment(pendingTotalPaid, shortage);
         }
 
-        async function generateTransactionNumber() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const dateStr = `${year}${month}${day}`;
-
-            let lastCounter = 0;
-            try {
-                const transaction = db.transaction([STORES.SETTINGS], 'readonly');
-                const store = transaction.objectStore(STORES.SETTINGS);
-                const request = store.get('lastTransactionNumber');
-                await new Promise((resolve, reject) => {
-                    request.onsuccess = () => {
-                        if (request.result) {
-                            const data = request.result.value;
-                            if (data.date === dateStr) {
-                                lastCounter = data.counter;
-                            } else {
-                               lastCounter = 0;
-                            }
-                        }
-                        resolve();
-                    };
-                    request.onerror = reject;
-                });
-            } catch (error) {
-                console.warn('Gagal membaca counter transaksi:', error);
-            }
-
-            const newCounter = lastCounter + 1;
-            const transactionNumber = `INV-${dateStr}-${String(newCounter).padStart(5, '0')}`;
-
-            try {
-                await dbPut(STORES.SETTINGS, {
-                    key: 'lastTransactionNumber',
-                    value: { date: dateStr, counter: newCounter }
-                });
-            } catch (error) {
-                console.error('Gagal menyimpan counter transaksi:', error);
-            }
-
-            return transactionNumber;
-        }
-
-        // ==================== FUNGSI PEMBAYARAN (MODIFIKASI) ====================
-        async function executePayment(method, paidAmount, outstandingAdded) {
+        async function executePayment(paidTotal, outstandingAdded) {
             try {
                 showLoading();
                 // Kurangi stok untuk item non-piutang
@@ -3733,13 +3711,24 @@
                     }
                 }
 
+                // Kumpulkan metode pembayaran yang digunakan
+                const cash = parseFloat(document.getElementById('payment-cash').value) || 0;
+                const card = parseFloat(document.getElementById('payment-card').value) || 0;
+                const transfer = parseFloat(document.getElementById('payment-transfer').value) || 0;
+                const ewallet = parseFloat(document.getElementById('payment-ewallet').value) || 0;
+                const payments = [];
+                if (cash > 0) payments.push({ method: 'cash', amount: cash });
+                if (card > 0) payments.push({ method: 'card', amount: card });
+                if (transfer > 0) payments.push({ method: 'transfer', amount: transfer });
+                if (ewallet > 0) payments.push({ method: 'ewallet', amount: ewallet });
+
                 const transactionNumber = await generateTransactionNumber();
 
                 const subtotal = cart.reduce((sum, c) => sum + c.subtotal, 0);
                 const discount = 0;
                 const tax = 0;
                 const total = subtotal - discount + tax;
-                const change = paidAmount - total;
+                const change = paidTotal - total;
 
                 // Bangun array items dengan menyertakan cost per unit
                 const items = cart.map(c => {
@@ -3773,8 +3762,8 @@
                     discount,
                     tax,
                     total,
-                    paymentMethod: method,
-                    paidAmount,
+                    payments,                 // array of {method, amount}
+                    paidTotal,
                     change,
                     outstandingAdded,
                     customerId: selectedCustomer ? selectedCustomer.id : null,
@@ -3792,7 +3781,7 @@
                         subtotal: c.subtotal
                     })),
                     total: total,
-                    paidAmount: paidAmount,
+                    paidAmount: paidTotal,
                     change: change,
                     date: new Date().toLocaleString('id-ID')
                 };
@@ -3800,7 +3789,7 @@
                 await loadKasirItems();
                 await loadCustomers();
                 renderProductList();
-                showNotification(`Pembayaran berhasil via ${method === 'cash' ? 'Tunai' : method === 'card' ? 'Kartu' : 'Transfer'}${outstandingAdded>0 ? ' (dengan piutang)' : ''}`, 'success');
+                showNotification(`Pembayaran berhasil (${payments.map(p => p.method).join(', ')})${outstandingAdded>0 ? ' (dengan piutang)' : ''}`, 'success');
                 
                 document.getElementById('print-receipt-btn').disabled = false;
                 
@@ -3819,8 +3808,8 @@
 
         function closeConfirmPiutangModal() {
             document.getElementById('confirm-piutang-modal').style.display = 'none';
-            pendingPaymentMethod = null;
-            pendingPaidAmount = 0;
+            pendingPayments = [];
+            pendingTotalPaid = 0;
         }
 
         // ==================== FUNGSI PRINT VIA WEB SERIAL ====================
