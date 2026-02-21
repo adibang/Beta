@@ -2630,27 +2630,38 @@
                     reader.onload = async (event) => {
                         try {
                             const importedData = JSON.parse(event.target.result);
-                            await dbClear(STORES.KASIR_CATEGORIES);
-                            await dbClear(STORES.KASIR_ITEMS);
-                            await dbClear(STORES.KASIR_SATUAN);
-                            await dbClear(STORES.CUSTOMERS);
-                            await dbClear(STORES.SUPPLIERS);
-                            await dbClear(STORES.PENDING_TRANSACTIONS);
-                            await dbClear(STORES.SETTINGS);
-                            if (importedData.kasirCategories) for (const kc of importedData.kasirCategories) try { await dbAdd(STORES.KASIR_CATEGORIES, kc); } catch (error) { console.warn('Gagal mengimport kategori kasir:', kc, error); }
-                            if (importedData.kasirItems) for (const ki of importedData.kasirItems) try { await dbAdd(STORES.KASIR_ITEMS, ki); } catch (error) { console.warn('Gagal mengimport item kasir:', ki, error); }
-                            if (importedData.kasirSatuan) for (const ks of importedData.kasirSatuan) try { await dbAdd(STORES.KASIR_SATUAN, ks); } catch (error) { console.warn('Gagal mengimport satuan:', ks, error); }
-                            if (importedData.customers) for (const c of importedData.customers) try { await dbAdd(STORES.CUSTOMERS, c); } catch (error) { console.warn('Gagal mengimport customer:', c, error); }
-                            if (importedData.suppliers) for (const s of importedData.suppliers) try { await dbAdd(STORES.SUPPLIERS, s); } catch (error) { console.warn('Gagal mengimport supplier:', s, error); }
-                            if (importedData.pendingTransactions) for (const pt of importedData.pendingTransactions) try { await dbAdd(STORES.PENDING_TRANSACTIONS, pt); } catch (error) { console.warn('Gagal mengimport pending transactions:', pt, error); }
-                            if (importedData.settings) for (const set of importedData.settings) try { await dbAdd(STORES.SETTINGS, set); } catch (error) { console.warn('Gagal mengimport setting:', set, error); }
+                            
+                            // --- Fungsi bantu untuk melakukan put pada setiap item dalam array ---
+                            const putAll = async (storeName, items) => {
+                                if (!items || !Array.isArray(items)) return;
+                                for (const item of items) {
+                                    try {
+                                        // Gunakan dbPut, bukan dbAdd
+                                        await dbPut(storeName, item);
+                                    } catch (error) {
+                                        console.warn(`Gagal mengupdate item di ${storeName}:`, item, error);
+                                    }
+                                }
+                            };
+        
+                            // Import semua data dengan put (update jika ada, tambah jika baru)
+                            await putAll(STORES.KASIR_CATEGORIES, importedData.kasirCategories);
+                            await putAll(STORES.KASIR_ITEMS, importedData.kasirItems);
+                            await putAll(STORES.KASIR_SATUAN, importedData.kasirSatuan);
+                            await putAll(STORES.CUSTOMERS, importedData.customers);
+                            await putAll(STORES.SUPPLIERS, importedData.suppliers);
+                            await putAll(STORES.PENDING_TRANSACTIONS, importedData.pendingTransactions);
+                            await putAll(STORES.SETTINGS, importedData.settings);
+        
+                            // Muat ulang data dari database ke variabel global
                             await loadKasirCategories();
                             await loadKasirItems();
                             await loadKasirSatuan();
                             await loadCustomers();
                             await loadSuppliers();
                             await loadPendingTransactions();
-                            showNotification('Data berhasil diimport!', 'success');
+        
+                            showNotification('Data berhasil diimport (merge)!', 'success');
                             resolve(true);
                         } catch (error) {
                             console.error('Error importing data:', error);
