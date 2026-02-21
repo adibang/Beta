@@ -3410,7 +3410,7 @@
                     return;
                 }
                 loginTapCount++;
-                if (loginTapCount >= 20) {
+                if (loginTapCount >= 10) {
                     overlay.removeEventListener('click', tapHandler);
                     overlay.style.opacity = '0';
                     setTimeout(async () => {
