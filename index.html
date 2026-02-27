@@ -2150,6 +2150,20 @@
             </div>
         </div>
     </div>
+    <!-- ==================== MODAL PILIH SATUAN PRODUK ==================== -->
+    <div class="modal-overlay" id="select-unit-modal">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Pilih Satuan</h2>
+            </div>
+            <div class="modal-body" id="select-unit-list">
+                <!-- Daftar satuan akan diisi oleh JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="form-button-secondary" onclick="closeSelectUnitModal()">Batal</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ==================== TOMBOL FLOATING UNTUK PENDING ==================== -->
     <button id="pending-transactions-btn" class="floating-btn" onclick="openPendingTransactionsModal()" title="Transaksi Pending">
