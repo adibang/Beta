@@ -2270,10 +2270,19 @@ async function handlePostPayment(autoPrint) {
     }
 }
 
+// ==================== FUNGSI PEMBAYARAN (REVISI) ====================
 async function executePayment(paidTotal, outstandingAdded) {
     console.log('executePayment dimulai, paidTotal:', paidTotal, 'outstandingAdded:', outstandingAdded);
     try {
         showLoading('Memproses pembayaran...');
+
+        // Hitung ulang total dari cart untuk memastikan akurasi
+        const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
+        // Hitung ulang shortage (nilai kurang bayar)
+        let shortage = total - paidTotal;
+        if (shortage < 0) shortage = 0; // jika kelebihan bayar, tidak ada piutang
+        // Gunakan shortage sebagai outstandingAdded yang benar
+        outstandingAdded = shortage;
 
         // 1. Kurangi stok
         for (let c of cart) {
@@ -2307,7 +2316,7 @@ async function executePayment(paidTotal, outstandingAdded) {
             }
         }
 
-        // 2. Update piutang dari item outstanding di keranjang
+        // 2. Update piutang dari item outstanding di keranjang (pembayaran piutang lama)
         for (let c of cart) {
             if (c.isOutstanding) {
                 const custId = c.customerId;
@@ -2337,7 +2346,7 @@ async function executePayment(paidTotal, outstandingAdded) {
             }
         }
 
-        // 3. Tambah piutang baru jika ada outstandingAdded
+        // 3. Tambah piutang baru jika ada shortage (kurang bayar)
         if (outstandingAdded > 0 && selectedCustomer) {
             const cust = customers.find(c => c.id === selectedCustomer.id);
             if (cust) {
@@ -2370,8 +2379,8 @@ async function executePayment(paidTotal, outstandingAdded) {
         const subtotal = cart.reduce((sum, c) => sum + c.subtotal, 0);
         const discount = 0;
         const tax = 0;
-        const total = subtotal - discount + tax;
-        const change = paidTotal - total;
+        const finalTotal = subtotal - discount + tax;
+        const change = paidTotal - finalTotal;
 
         const items = cart.map(c => ({
             itemId: c.item.id,
@@ -2382,7 +2391,7 @@ async function executePayment(paidTotal, outstandingAdded) {
             unitConversion: c.unitConversion ? { 
                 id: c.unitConversion.unit, 
                 name: kasirSatuan.find(s => s.id == c.unitConversion.unit)?.name,
-                value: c.unitConversion.value   // ⬅️ tambahkan nilai konversi
+                value: c.unitConversion.value
             } : null,
             weightGram: c.weightGram || 0,
             cost: (c.unitConversion?.basePrice || c.item.hargaDasar || 0),
@@ -2398,7 +2407,7 @@ async function executePayment(paidTotal, outstandingAdded) {
             subtotal,
             discount,
             tax,
-            total,
+            total: finalTotal,
             payments,
             paidTotal,
             change,
@@ -2419,7 +2428,7 @@ async function executePayment(paidTotal, outstandingAdded) {
                 price: c.pricePerUnit,
                 subtotal: c.subtotal
             })),
-            total: total,
+            total: finalTotal,
             paidAmount: paidTotal,
             change: change,
             date: new Date().toLocaleString('id-ID'),
@@ -2453,7 +2462,6 @@ async function executePayment(paidTotal, outstandingAdded) {
         pendingTotalPaid = 0;
     }
 }
-
 function closeConfirmPiutangModal() {
     document.getElementById('confirm-piutang-modal').style.display = 'none';
     setPaymentInputsDisabled(false);
