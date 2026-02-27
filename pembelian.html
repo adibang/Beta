@@ -924,6 +924,31 @@
             const total = subtotal - discount + tax;
             document.getElementById('total').textContent = formatRupiah(total);
         }
+        // ==================== RESET FORM ====================
+        function resetForm() {
+    // Reset pilihan supplier
+            document.getElementById('supplier-select').value = '';
+
+    // Kosongkan keranjang
+            cart = [];
+            renderCart();               // perbarui tampilan tabel
+            saveCartToLocalStorage();   // hapus dari localStorage
+
+    // Reset input angka
+            document.getElementById('discount').value = 0;
+            document.getElementById('tax').value = 0;
+            document.getElementById('paid-amount').value = 0;
+            document.getElementById('notes').value = '';
+            document.getElementById('payment-method').value = 'cash';
+
+    // Reset tampilan subtotal & total
+            document.getElementById('subtotal').textContent = 'Rp 0';
+            document.getElementById('total').textContent = 'Rp 0';
+
+    // Kosongkan pencarian dan hasil pencarian
+            document.getElementById('search-product').value = '';
+            document.getElementById('product-list').innerHTML = '';
+        }
 
         // ==================== SIMPAN PEMBELIAN ====================
         async function savePurchase() {
