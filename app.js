@@ -2835,7 +2835,7 @@ function renderProductList(itemsToRender = null) {
             let step = item.isWeighable ? '0.01' : '1';
             let min = '0.01';
             html += `
-                <div class="product-list-item" onclick="addToCartFromProductWithQty(${item.id}, this)">
+                <div class="product-list-item" data-item-id="${item.id}">
                     <div class="name"><strong>${item.name}</strong></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0;">
                         <span class="price" style="font-size: 0.9rem;">${formatRupiah(item.hargaJual)}</span>
@@ -2856,7 +2856,7 @@ function renderProductList(itemsToRender = null) {
             let step = item.isWeighable ? '0.01' : '1';
             let min = '0.01';
             html += `
-                <div class="product-card" onclick="addToCartFromProductWithQty(${item.id}, this)">
+                <div class="product-card" data-item-id="${item.id}">
                     <div class="product-image">
                         <svg viewBox="0 0 24 24" width="48" height="48">
                             <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" fill="none"/>
@@ -2938,6 +2938,133 @@ function addToCartFromProductWithQty(itemId, element) {
         addToCart(item, qty, null, 0);
     }
 }
+
+// ==================== LONG PRESS & PEMILIHAN SATUAN ====================
+let longPressTimer = null;
+let longPressItemId = null;
+let longPressTriggered = false;
+
+function handleLongPressStart(e) {
+    // Hanya klik kiri atau sentuhan
+    if (e.button !== 0 && e.type !== 'touchstart') return;
+    // Abaikan jika target adalah tombol atau input
+    if (e.target.closest('button, input')) return;
+
+    const productEl = e.target.closest('.product-list-item, .product-card');
+    if (!productEl) return;
+    const itemId = parseInt(productEl.dataset.itemId);
+    if (isNaN(itemId)) return;
+
+    // Batalkan timer sebelumnya
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+
+    longPressItemId = itemId;
+    longPressTriggered = false;
+
+    longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        showUnitSelectionModal(itemId);
+        longPressTimer = null;
+    }, 500);
+}
+
+function handleLongPressEnd(e) {
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+    // Jangan reset longPressTriggered di sini, karena akan dicek di event click
+}
+
+// Pasang event listener pada container produk
+const productContainer = document.getElementById('product-container');
+if (productContainer) {
+    productContainer.addEventListener('mousedown', handleLongPressStart);
+    productContainer.addEventListener('touchstart', handleLongPressStart);
+    productContainer.addEventListener('mouseup', handleLongPressEnd);
+    productContainer.addEventListener('touchend', handleLongPressEnd);
+    productContainer.addEventListener('mouseleave', handleLongPressEnd);
+    productContainer.addEventListener('touchcancel', handleLongPressEnd);
+
+    // Event klik untuk menambah produk biasa (tanpa satuan)
+    productContainer.addEventListener('click', function(e) {
+        if (longPressTriggered) {
+            e.preventDefault();
+            e.stopPropagation();
+            longPressTriggered = false;
+            return false;
+        }
+        // Abaikan jika target adalah tombol atau input
+        if (e.target.closest('button, input')) return;
+
+        const productEl = e.target.closest('.product-list-item, .product-card');
+        if (!productEl) return;
+        const itemId = parseInt(productEl.dataset.itemId);
+        if (isNaN(itemId)) return;
+        addToCartFromProductWithQty(itemId, productEl);
+    });
+}
+
+function showUnitSelectionModal(itemId) {
+    const item = kasirItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    if (!item.unitConversions || item.unitConversions.length === 0) {
+        showNotification('Produk ini tidak memiliki satuan alternatif', 'info');
+        return;
+    }
+
+    const modal = document.getElementById('select-unit-modal');
+    const listContainer = document.getElementById('select-unit-list');
+    if (!modal || !listContainer) return;
+
+    let html = `<div style="margin-bottom:10px;">Pilih satuan untuk <strong>${item.name}</strong></div>`;
+    item.unitConversions.forEach((conv, index) => {
+        const unitName = kasirSatuan.find(s => s.id == conv.unit)?.name || '?';
+        const price = conv.sellPrice;
+        html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                <div>
+                    <strong>${unitName}</strong> (1 ${unitName} = ${conv.value} ${item.satuanDasar || 'pcs'})<br>
+                    Harga: ${formatRupiah(price)}
+                </div>
+                <button class="form-button-primary" onclick="addToCartWithUnit(${itemId}, ${index})">Pilih</button>
+            </div>
+        `;
+    });
+
+    listContainer.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function closeSelectUnitModal() {
+    document.getElementById('select-unit-modal').style.display = 'none';
+}
+
+function addToCartWithUnit(itemId, convIndex) {
+    const item = kasirItems.find(i => i.id === itemId);
+    if (!item) return;
+    const conv = item.unitConversions[convIndex];
+    if (!conv) return;
+
+    // Ambil nilai qty dari input yang sesuai
+    const input = document.querySelector(`.qty-input[data-id="${itemId}"]`);
+    let qty = 1;
+    if (input) {
+        qty = parseFloat(input.value);
+        if (isNaN(qty) || qty <= 0) qty = 0.01;
+    }
+
+    addToCart(item, qty, conv, 0);
+    closeSelectUnitModal();
+}
+
+// Expose fungsi ke global agar bisa dipanggil dari HTML
+window.closeSelectUnitModal = closeSelectUnitModal;
+window.addToCartWithUnit = addToCartWithUnit;
 
 // ==================== FUNGSI PENDING TRANSACTIONS ====================
 function openPendingTransactionsModal() {
@@ -3508,6 +3635,7 @@ window.onclick = function(event) {
         else if (modalId === 'create-admin-modal') closeCreateAdminModal();
         else if (modalId === 'user-modal') closeUserModal();
         else if (modalId === 'bundle-modal') closeBundleModal();
+        else if (modalId === 'select-unit-modal') closeSelectUnitModal();
         else {
             // fallback: sembunyikan modal
             event.target.style.display = 'none';
