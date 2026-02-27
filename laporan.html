@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSPLUS - Laporan Penjualan</title>
+    <style>
+        /* ==================== RESET & BASE ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+        }
+        body {
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* ==================== HEADER ==================== */
+        .app-header {
+            background: #FFFFFF;
+            color: #006B54;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+        }
+        .drawer-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #006B54;
+        }
+        .drawer-toggle svg {
+            width: 24px;
+            height: 24px;
+        }
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #006B54;
+        }
+        #user-name-display {
+            font-weight: 600;
+            color: #006B54;
+            margin-right: 10px;
+        }
+        .logout-btn {
+            background: none;
+            border: 1px solid #006B54;
+            border-radius: 15px;
+            padding: 8px 12px;
+            color: #006B54;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            background: #006B54;
+            color: white;
+        }
+        .logout-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* ==================== DRAWER SIDEBAR ==================== */
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            z-index: 300;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-y: auto;
+            transition: left 0.3s ease;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar .menu-header {
+            margin: 0 16px 10px;
+            padding: 8px 0;
+            font-weight: 700;
+            color: #006B54;
+            border-bottom: 1px solid #d9d9d9;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .sidebar button {
+            margin: 0 10px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            color: #006B54;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: calc(100% - 20px);
+            text-align: left;
+            border: 1px solid transparent;
+        }
+        .sidebar button:hover {
+            background: #f0f9f6;
+            border-color: #006B54;
+        }
+        .sidebar button.active {
+            background: #006B54;
+            color: white;
+        }
+        .sidebar button svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 250;
+            display: none;
+        }
+        .drawer-overlay.show {
+            display: block;
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .filter-group {
+            flex: 1 1 200px;
+        }
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #006B54;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #333;
+            border-radius: 15px;
+            font-size: 1rem;
+            background: white;
+        }
+        button {
+            padding: 12px 24px;
+            border-radius: 15px;
+            border: 1px solid #006B54;
+            background: #006B54;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+        button.secondary {
+            background: white;
+            color: #006B54;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .report-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .report-section.active {
+            display: block;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #006B54;
+            margin-top: 10px;
+        }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-box {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+        }
+        .chart-box h3 {
+            color: #006B54;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        #productTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #productTable th {
+            background: #006B54;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            user-select: none;
+        }
+        #productTable th .sort-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 5px;
+            vertical-align: middle;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>') no-repeat center;
+            background-size: contain;
+            opacity: 0.7;
+        }
+        #productTable th.sort-asc .sort-icon {
+            transform: rotate(180deg);
+        }
+        #productTable th.sort-desc .sort-icon {
+            transform: rotate(0deg);
+        }
+        #productTable td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        #productTable tr:hover {
+            background: #f5f5f5;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #006B54;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .detail-btn {
+            background: none;
+            border: none;
+            color: #006B54;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        .detail-btn:hover {
+            background: #e0f2f1;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #006B54;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+        }
+        .item-detail {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header dengan hamburger, user info, dan ikon home -->
+    <header class="app-header">
+        <button class="drawer-toggle" id="drawer-toggle" onclick="toggleDrawer()">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <div class="app-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006B54" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Laporan Penjualan
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="user-name-display" style="font-weight:600; color:#006B54;"></span>
+            <!-- Ikon Home dengan class logout-btn agar tampil sama dengan tombol logout -->
+            <a href="index.html" class="logout-btn" target="_self">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </a>
+            <button class="logout-btn" onclick="logout()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Drawer -->
+    <div class="sidebar" id="sidebar">
+        <div class="menu-header">LAPORAN</div>
+        <button class="active" onclick="showSection('summary')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Ringkasan
+        </button>
+        <button onclick="showSection('dailyChart')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Grafik Harian
+        </button>
+        <button onclick="showSection('categoryChart')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="12" x2="12" y2="8"/><line x1="12" y1="12" x2="16" y2="12"/></svg>
+            Grafik Kategori
+        </button>
+        <button onclick="showSection('product')">
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="12" y2="15"/></svg>
+            Penjualan per Produk
+        </button>
+        <button onclick="showSection('transactions')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Daftar Transaksi
+        </button>
+        <button onclick="showSection('profitloss')">
+            <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Laba Rugi
+        </button>
+        <button onclick="showSection('cashflow')">
+            <svg viewBox="0 0 24 24">
+                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+                <line x1="7" y1="15" x2="12" y2="15"/>
+            </svg>
+            Arus Kas
+        </button>
+        <!-- ===== TOMBOL BUNDLE BARU ===== -->
+        <button onclick="showSection('bundle')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            Penjualan Bundle
+        </button>
+        <div style="flex:1;"></div>
+        <button onclick="exportAllCSV()" style="border-top:1px solid #ddd; border-radius:0;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Ekspor Semua CSV
+        </button>
+    </div>
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>Tanggal Mulai</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label>Tanggal Akhir</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label>Metode Pembayaran</label>
+                <select id="paymentMethod">
+                    <option value="all">Semua</option>
+                    <option value="cash">Tunai</option>
+                    <option value="card">Kartu</option>
+                    <option value="transfer">Transfer</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="loadData()">Tampilkan</button>
+            </div>
+        </div>
+
+        <!-- Section: Ringkasan -->
+        <div id="section-summary" class="report-section active">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">Total Penjualan</div>
+                    <div class="value" id="totalSales">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Jumlah Transaksi</div>
+                    <div class="value" id="totalTransactions">0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Rata-rata per Transaksi</div>
+                    <div class="value" id="averageTransaction">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Piutang</div>
+                    <div class="value" id="totalOutstanding">Rp 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Grafik Harian -->
+        <div id="section-dailyChart" class="report-section">
+            <div class="chart-box">
+                <h3>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006B54" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    Penjualan Harian
+                </h3>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Grafik Kategori -->
+        <div id="section-categoryChart" class="report-section">
+            <div class="chart-box">
+                <h3>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006B54" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="12" x2="12" y2="8"></line>
+                        <line x1="12" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Penjualan per Kategori
+                </h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Penjualan per Produk -->
+        <div id="section-product" class="report-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color: #006B54;">Penjualan per Produk</h2>
+                <button class="secondary" onclick="exportProductCSV()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Ekspor CSV Produk
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="productTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="productName">Nama Produk <span class="sort-icon"></span></th>
+                            <th data-sort="totalQtyBase">Jumlah Terjual <span class="sort-icon"></span></th>
+                            <th data-sort="totalRevenue">Total Pendapatan <span class="sort-icon"></span></th>
+                            <th data-sort="avgPrice">Rata-rata Harga <span class="sort-icon"></span></th>
+                            <th data-sort="grossProfit">Estimasi Laba Kotor <span class="sort-icon"></span></th>
+                            <th data-sort="contribution">Kontribusi (%) <span class="sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <tr><td colspan="6" style="text-align:center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section: Daftar Transaksi (TELAH DIPERBAIKI) -->
+        <div id="section-transactions" class="report-section">
+            <h2 style="color: #006B54; margin-bottom: 15px;">Daftar Transaksi</h2>
+            <div style="overflow-x: auto;">
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>No. Transaksi</th>
+                            <th>Tanggal</th>
+                            <th>Pelanggan</th>
+                            <th>Total</th>
+                            <th>Metode</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="6" style="text-align:center;">Pilih filter dan klik Tampilkan</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section: Laba Rugi -->
+        <div id="section-profitloss" class="report-section">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">Total Penjualan Bersih</div>
+                    <div class="value" id="pl-total-sales">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Diskon</div>
+                    <div class="value" id="pl-total-discount">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Pajak</div>
+                    <div class="value" id="pl-total-tax">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">HPP</div>
+                    <div class="value" id="pl-hpp">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Laba Kotor</div>
+                    <div class="value" id="pl-gross-profit">Rp 0</div>
+                </div>
+            </div>
+            <div class="chart-box" style="margin-top:20px;">
+                <h3>Komponen Laba Rugi</h3>
+                <div class="chart-container" style="height:300px;">
+                    <canvas id="profitLossChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Arus Kas -->
+        <div id="section-cashflow" class="report-section">
+            <div class="cards">
+                <div class="card">
+                    <div class="label">Total Pemasukan</div>
+                    <div class="value" id="cf-income">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Pengeluaran</div>
+                    <div class="value" id="cf-expense">Rp 0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Arus Kas Bersih</div>
+                    <div class="value" id="cf-net">Rp 0</div>
+                </div>
+            </div>
+            <div class="chart-box" style="margin-top:20px;">
+                <h3>Arus Kas per Bulan</h3>
+                <div class="chart-container" style="height:300px;">
+                    <canvas id="cashFlowChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION BUNDLE BARU ===== -->
+        <div id="section-bundle" class="report-section">
+            <h2 style="color: #006B54; margin-bottom: 15px;">Penjualan Bundle</h2>
+            <div style="overflow-x: auto;">
+                <table id="bundleTable">
+                    <thead>
+                        <tr>
+                            <th>Nama Bundle</th>
+                            <th>Jumlah Terjual</th>
+                            <th>Total Pendapatan</th>
+                            <th>Komponen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bundleTableBody">
+                        <tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail Transaksi -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detail Transaksi</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const DB_NAME = 'POSKasirDB';
+        const DB_VERSION = 20; // Sesuaikan dengan versi di app.js
+        let db = null;
+        let salesData = [];
+        let chartInstance = null;
+        let categoryChartInstance = null;
+        let profitLossChartInstance = null;
+        let cashFlowChartInstance = null;
+        let categoryMap = {};
+        let itemCategoryMap = {};
+        let productMap = {};
+        let productAggregatedData = [];
+        let productSortColumn = 'totalRevenue';
+        let productSortDirection = 'desc';
+        let currentUser = null;
+
+        // ===== VARIABEL UNTUK BUNDLE =====
+        let bundles = [];
+        let bundleSalesData = [];
+
+        // ==================== SESSION CHECK ====================
+        async function checkSession() {
+            const savedUser = sessionStorage.getItem('currentUser');
+            if (!savedUser) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            try {
+                const parsed = JSON.parse(savedUser);
+                const tx = db.transaction(['users'], 'readonly');
+                const store = tx.objectStore('users');
+                const request = store.get(parsed.id);
+                return new Promise((resolve) => {
+                    request.onsuccess = () => {
+                        const user = request.result;
+                        if (user) {
+                            currentUser = user;
+                            const userNameSpan = document.getElementById('user-name-display');
+                            if (userNameSpan) userNameSpan.textContent = user.name;
+                            resolve(true);
+                        } else {
+                            sessionStorage.removeItem('currentUser');
+                            window.location.href = 'index.html';
+                            resolve(false);
+                        }
+                    };
+                    request.onerror = () => {
+                        sessionStorage.removeItem('currentUser');
+                        window.location.href = 'index.html';
+                        resolve(false);
+                    };
+                });
+            } catch (e) {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        // ==================== DRAWER FUNCTIONS ====================
+        function toggleDrawer() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('drawer-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+        function closeDrawer() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('drawer-overlay').classList.remove('show');
+        }
+
+        // ==================== SECTION NAVIGATION ====================
+        function showSection(sectionId) {
+            document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+            document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
+            const buttons = document.querySelectorAll('.sidebar button');
+            for (let btn of buttons) {
+                if (btn.getAttribute('onclick')?.includes(sectionId)) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
+            closeDrawer();
+
+            if (sectionId === 'dailyChart' && chartInstance) chartInstance.resize();
+            if (sectionId === 'categoryChart' && categoryChartInstance) categoryChartInstance.resize();
+            if (sectionId === 'profitloss' && profitLossChartInstance) profitLossChartInstance.resize();
+            if (sectionId === 'cashflow' && cashFlowChartInstance) cashFlowChartInstance.resize();
+        }
+
+        // ==================== DATABASE ====================
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve();
+                };
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('sales')) {
+                        alert('Database belum memiliki data penjualan. Silakan buka aplikasi utama terlebih dahulu.');
+                    }
+                    if (!db.objectStoreNames.contains('users')) {
+                        db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('bundles')) {
+                        db.createObjectStore('bundles', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (db.objectStoreNames.contains('kasirItems')) {
+                        const transaction = e.target.transaction;
+                        const store = transaction.objectStore('kasirItems');
+                        store.openCursor().onsuccess = (ev) => {
+                            const cursor = ev.target.result;
+                            if (cursor) {
+                                const item = cursor.value;
+                                if (item.minStock === undefined) {
+                                    item.minStock = 5;
+                                    cursor.update(item);
+                                }
+                                cursor.continue();
+                            }
+                        };
+                    }
+                };
+            });
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        async function fetchSales(start, end, method) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('Database tidak tersedia'); return; }
+                if (!db.objectStoreNames.contains('sales')) { resolve([]); return; }
+                const transaction = db.transaction(['sales'], 'readonly');
+                const store = transaction.objectStore('sales');
+                const index = store.index('date');
+                const range = IDBKeyRange.bound(start + 'T00:00:00.000Z', end + 'T23:59:59.999Z');
+                const request = index.getAll(range);
+                request.onsuccess = () => {
+                    let data = request.result || [];
+                    if (method !== 'all') {
+                        data = data.filter(item => {
+                            if (Array.isArray(item.payments)) {
+                                return item.payments.some(p => p.method === method);
+                            }
+                            return item.paymentMethod === method;
+                        });
+                    }
+                    resolve(data);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function fetchPurchases(start, end) {
+            return new Promise((resolve, reject) => {
+                if (!db) { reject('Database tidak tersedia'); return; }
+                if (!db.objectStoreNames.contains('purchases')) { resolve([]); return; }
+                const transaction = db.transaction(['purchases'], 'readonly');
+                const store = transaction.objectStore('purchases');
+                const index = store.index('date');
+                const range = IDBKeyRange.bound(start + 'T00:00:00.000Z', end + 'T23:59:59.999Z');
+                const request = index.getAll(range);
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function calculateSummary(data) {
+            let totalSales = 0;
+            let totalTransactions = data.length;
+            let totalOutstanding = 0;
+            data.forEach(item => {
+                totalSales += item.total;
+                totalOutstanding += item.outstandingAdded || 0;
+            });
+            const average = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+            return { totalSales, totalTransactions, average, totalOutstanding };
+        }
+
+        function formatRupiah(angka) {
+            return 'Rp ' + angka.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        // Render grafik harian
+        function renderChart(data, start, end) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const dateMap = new Map();
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = formatDate(d);
+                dateMap.set(dateStr, 0);
+            }
+
+            data.forEach(item => {
+                const dateStr = formatDate(item.date);
+                if (dateMap.has(dateStr)) {
+                    dateMap.set(dateStr, dateMap.get(dateStr) + item.total);
+                }
+            });
+
+            const labels = Array.from(dateMap.keys()).sort();
+            const values = labels.map(date => dateMap.get(date));
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Penjualan',
+                        data: values,
+                        backgroundColor: '#006B54',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.raw) } }
+                    },
+                    scales: {
+                        y: { ticks: { callback: (val) => formatRupiah(val) } }
+                    }
+                }
+            });
+        }
+
+        // ==================== RENDER TABEL DENGAN DATA-ID (PERBAIKAN) ====================
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada data</td></tr>';
+                return;
+            }
+            let html = '';
+            data.forEach(trx => {
+                // Lewati jika tidak punya id (validasi)
+                if (!trx.id) return;
+                const date = new Date(trx.date).toLocaleString('id-ID');
+                const metode = Array.isArray(trx.payments) 
+                    ? trx.payments.map(p => p.method).join(', ') 
+                    : (trx.paymentMethod || '-');
+                html += `
+                    <tr>
+                        <td>${trx.transactionNumber || '-'}</td>
+                        <td>${date}</td>
+                        <td>${trx.customerName || '-'}</td>
+                        <td>${formatRupiah(trx.total || 0)}</td>
+                        <td>${metode}</td>
+                        <td><button class="detail-btn" data-id="${trx.id}">🔻</button></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ==================== FUNGSI DETAIL DENGAN EVENT DELEGATION ====================
+        function showDetail(id) {
+            // Konversi ke string untuk perbandingan yang aman
+            const idStr = String(id).trim();
+            const trx = salesData.find(t => String(t.id) === idStr);
+            if (!trx) {
+                console.warn('Transaksi tidak ditemukan untuk id:', id);
+                alert('Data transaksi tidak ditemukan');
+                return;
+            }
+
+            // Bangun konten modal dengan pengecekan properti
+            let itemsHtml = '';
+            if (trx.items && Array.isArray(trx.items)) {
+                trx.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="item-detail">
+                            <strong>${item.itemName || 'Produk'}</strong><br>
+                            Jumlah: ${item.qty || 0} ${item.unitConversion ? '(' + item.unitConversion.name + ')' : ''} ${item.weightGram ? '(' + item.weightGram + ' g)' : ''}<br>
+                            Harga Satuan: ${formatRupiah(item.pricePerUnit || 0)}<br>
+                            Subtotal: ${formatRupiah(item.subtotal || 0)}
+                        </div>
+                    `;
+                });
+            } else {
+                itemsHtml = '<p>Tidak ada item</p>';
+            }
+
+            document.getElementById('modalBody').innerHTML = `
+                <p><strong>No. Transaksi:</strong> ${trx.transactionNumber || '-'}</p>
+                <p><strong>Tanggal:</strong> ${new Date(trx.date).toLocaleString('id-ID')}</p>
+                <p><strong>Pelanggan:</strong> ${trx.customerName || '-'}</p>
+                <p><strong>Subtotal:</strong> ${formatRupiah(trx.subtotal || 0)}</p>
+                <p><strong>Diskon:</strong> ${formatRupiah(trx.discount || 0)}</p>
+                <p><strong>Pajak:</strong> ${formatRupiah(trx.tax || 0)}</p>
+                <p><strong>Total:</strong> ${formatRupiah(trx.total || 0)}</p>
+                <p><strong>Metode:</strong> ${Array.isArray(trx.payments) ? trx.payments.map(p => p.method).join(', ') : (trx.paymentMethod || '-')}</p>
+                <p><strong>Dibayar:</strong> ${formatRupiah(trx.paidAmount || 0)}</p>
+                <p><strong>Kembalian:</strong> ${formatRupiah(trx.change || 0)}</p>
+                <p><strong>Piutang ditambahkan:</strong> ${formatRupiah(trx.outstandingAdded || 0)}</p>
+                <h3>Item yang dibeli:</h3>
+                ${itemsHtml}
+            `;
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // Event listener untuk delegasi tombol detail
+        document.addEventListener('DOMContentLoaded', function() {
+            const transactionsTable = document.getElementById('transactionsTable');
+            if (transactionsTable) {
+                transactionsTable.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.detail-btn');
+                    if (!btn) return;
+                    const id = btn.getAttribute('data-id');
+                    if (id) {
+                        showDetail(id);
+                    }
+                });
+            }
+        });
+
+        function exportCSV() {
+            if (salesData.length === 0) { alert('Tidak ada data untuk diekspor'); return; }
+            let csv = 'No. Transaksi,Tanggal,Pelanggan,Total,Metode\n';
+            salesData.forEach(trx => {
+                const date = new Date(trx.date).toLocaleString('id-ID');
+                const metode = Array.isArray(trx.payments) ? trx.payments.map(p => p.method).join(' ') : trx.paymentMethod;
+                csv += `"${trx.transactionNumber}","${date}","${trx.customerName || ''}",${trx.total},"${metode}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', 'laporan_penjualan.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportAllCSV() {
+            exportCSV();
+            exportProductCSV();
+        }
+
+        // ==================== FITUR PRODUK ====================
+        async function loadProducts() {
+            return new Promise((resolve, reject) => {
+                if (!db) { resolve(); return; }
+                const tx = db.transaction(['kasirItems'], 'readonly');
+                const store = tx.objectStore('kasirItems');
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    const items = request.result || [];
+                    productMap = {};
+                    items.forEach(item => {
+                        productMap[item.id] = {
+                            hargaDasar: item.hargaDasar || 0,
+                            name: item.name
+                        };
+                    });
+                    resolve();
+                };
+                request.onerror = (err) => reject(err);
+            });
+        }
+
+        async function loadCategoriesAndItems() {
+            return new Promise((resolve, reject) => {
+                if (!db) { resolve(); return; }
+                try {
+                    const catTx = db.transaction(['kasirCategories'], 'readonly');
+                    const catStore = catTx.objectStore('kasirCategories');
+                    const catRequest = catStore.getAll();
+                    catRequest.onsuccess = () => {
+                        const categories = catRequest.result || [];
+                        categoryMap = {};
+                        categories.forEach(cat => { categoryMap[cat.id] = cat.name; });
+                        const itemTx = db.transaction(['kasirItems'], 'readonly');
+                        const itemStore = itemTx.objectStore('kasirItems');
+                        const itemRequest = itemStore.getAll();
+                        itemRequest.onsuccess = () => {
+                            const items = itemRequest.result || [];
+                            itemCategoryMap = {};
+                            items.forEach(item => {
+                                if (item.categoryId) itemCategoryMap[item.id] = item.categoryId;
+                            });
+                            resolve();
+                        };
+                        itemRequest.onerror = reject;
+                    };
+                    catRequest.onerror = reject;
+                } catch (error) { reject(error); }
+            });
+        }
+
+        function aggregateProductSales(salesData) {
+            const productSales = {};
+            salesData.forEach(transaction => {
+                if (!transaction.items) return;
+                transaction.items.forEach(item => {
+                    if (item.isBundle) {
+                        if (item.components && Array.isArray(item.components)) {
+                            item.components.forEach(comp => {
+                                const productId = comp.itemId;
+                                if (!productId) return;
+                                let qtyBase = comp.qty * item.qty;
+                                if (comp.unitConversionId) {
+                                    const conv = productMap[productId]?.unitConversions?.find(u => u.id == comp.unitConversionId);
+                                    if (conv) qtyBase *= conv.value;
+                                }
+                                if (!productSales[productId]) {
+                                    productSales[productId] = { productId, productName: productMap[productId]?.name || 'Unknown', totalQtyBase: 0, totalRevenue: 0, grossProfit: 0 };
+                                }
+                                productSales[productId].totalQtyBase += qtyBase;
+                            });
+                        }
+                    } else {
+                        const productId = item.itemId;
+                        if (!productId) return;
+                        let qtyBase = item.qty;
+                        if (item.unitConversion && item.unitConversion.value) qtyBase *= item.unitConversion.value;
+                        const revenue = item.subtotal || 0;
+                        if (!productSales[productId]) {
+                            productSales[productId] = { productId, productName: item.itemName, totalQtyBase: 0, totalRevenue: 0, grossProfit: 0 };
+                        }
+                        productSales[productId].totalQtyBase += qtyBase;
+                        productSales[productId].totalRevenue += revenue;
+                        const productInfo = productMap[productId];
+                        if (productInfo && productInfo.hargaDasar > 0) {
+                            const cost = productInfo.hargaDasar * qtyBase;
+                            productSales[productId].grossProfit += (revenue - cost);
+                        }
+                    }
+                });
+            });
+            const totalRevenueAll = salesData.reduce((sum, t) => sum + (t.total || 0), 0);
+            return Object.values(productSales).map(p => ({
+                ...p,
+                avgPrice: p.totalQtyBase > 0 ? p.totalRevenue / p.totalQtyBase : 0,
+                contribution: totalRevenueAll > 0 ? (p.totalRevenue / totalRevenueAll) * 100 : 0
+            }));
+        }
+
+        function renderProductTable(data) {
+            const tbody = document.getElementById('productTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada data produk</td></tr>';
+                return;
+            }
+            const sorted = [...data].sort((a, b) => {
+                let aVal = a[productSortColumn], bVal = b[productSortColumn];
+                if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+                if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+                return (aVal < bVal ? -1 : 1) * (productSortDirection === 'asc' ? 1 : -1);
+            });
+            let html = '';
+            sorted.forEach(p => {
+                const laba = p.grossProfit > 0 ? formatRupiah(p.grossProfit) : '-';
+                html += `<tr><td>${p.productName}</td><td>${p.totalQtyBase.toFixed(2)}</td><td>${formatRupiah(p.totalRevenue)}</td><td>${formatRupiah(p.avgPrice)}</td><td>${laba}</td><td>${p.contribution.toFixed(2)}%</td></tr>`;
+            });
+            tbody.innerHTML = html;
+            document.querySelectorAll('#productTable th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === productSortColumn) {
+                    th.classList.add(productSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+        }
+
+        function initProductTableSort() {
+            document.querySelectorAll('#productTable th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortKey = th.dataset.sort;
+                    if (sortKey === productSortColumn) {
+                        productSortDirection = productSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        productSortColumn = sortKey;
+                        productSortDirection = 'desc';
+                    }
+                    renderProductTable(productAggregatedData);
+                });
+            });
+        }
+
+        function exportProductCSV() {
+            if (!productAggregatedData || productAggregatedData.length === 0) {
+                alert('Tidak ada data produk untuk diekspor');
+                return;
+            }
+            let csv = 'Nama Produk,Jumlah Terjual,Total Pendapatan,Rata-rata Harga,Estimasi Laba Kotor,Kontribusi (%)\n';
+            productAggregatedData.forEach(p => {
+                const laba = p.grossProfit > 0 ? p.grossProfit : 0;
+                csv += `"${p.productName}",${p.totalQtyBase.toFixed(2)},${p.totalRevenue},${p.avgPrice.toFixed(2)},${laba},${p.contribution.toFixed(2)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'laporan_penjualan_per_produk.csv';
+            link.click();
+        }
+
+        // ==================== FITUR KATEGORI ====================
+        function aggregateCategorySales(salesData) {
+            const categoryRevenue = {};
+            salesData.forEach(transaction => {
+                if (!transaction.items) return;
+                transaction.items.forEach(item => {
+                    if (item.isBundle) {
+                        return;
+                    }
+                    const catId = itemCategoryMap[item.itemId];
+                    if (!catId) return;
+                    const revenue = item.subtotal || 0;
+                    categoryRevenue[catId] = (categoryRevenue[catId] || 0) + revenue;
+                });
+            });
+            return Object.entries(categoryRevenue).map(([id, total]) => ({
+                categoryName: categoryMap[id] || 'Tanpa Kategori',
+                total
+            })).sort((a, b) => b.total - a.total);
+        }
+
+        function renderCategoryChart(data) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            if (!data || data.length === 0) {
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#999';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tidak ada data kategori', 150, 150);
+                return;
+            }
+            const labels = data.map(d => d.categoryName);
+            const values = data.map(d => d.total);
+            const total = values.reduce((a, b) => a + b, 0);
+            categoryChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#006B54','#FFA500','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEEAD','#D4A5A5','#9B59B6','#3498DB'],
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    const perc = ((val / total) * 100).toFixed(2);
+                                    return `${ctx.label}: ${formatRupiah(val)} (${perc}%)`;
+                                }
+                            }
+                        },
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                    }
+                }
+            });
+        }
+
+        // ==================== FITUR LABA RUGI ====================
+        function calculateProfitLoss(salesData) {
+            let totalSales = 0;
+            let totalDiscount = 0;
+            let totalTax = 0;
+            let totalHPP = 0;
+            salesData.forEach(trx => {
+                totalSales += trx.total || 0;
+                totalDiscount += trx.discount || 0;
+                totalTax += trx.tax || 0;
+                if (trx.items) {
+                    trx.items.forEach(item => {
+                        if (item.isBundle) {
+                            if (item.components && Array.isArray(item.components)) {
+                                item.components.forEach(comp => {
+                                    const product = productMap[comp.itemId];
+                                    if (product && product.hargaDasar > 0) {
+                                        let qtyBase = comp.qty * item.qty;
+                                        if (comp.unitConversionId) {
+                                            const conv = productMap[comp.itemId]?.unitConversions?.find(u => u.id == comp.unitConversionId);
+                                            if (conv) qtyBase *= conv.value;
+                                        }
+                                        totalHPP += product.hargaDasar * qtyBase;
+                                    }
+                                });
+                            }
+                        } else {
+                            if (item.cost !== undefined) {
+                                totalHPP += (item.qty || 0) * item.cost;
+                            }
+                        }
+                    });
+                }
+            });
+            const grossProfit = totalSales - totalHPP;
+            return { totalSales, totalDiscount, totalTax, totalHPP, grossProfit };
+        }
+
+        function renderProfitLossChart(data) {
+            const ctx = document.getElementById('profitLossChart').getContext('2d');
+            if (profitLossChartInstance) profitLossChartInstance.destroy();
+            const { totalSales, totalHPP, grossProfit } = data;
+            if (totalSales === 0) {
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#999';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tidak ada data', 150, 150);
+                return;
+            }
+            profitLossChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['HPP', 'Laba Kotor'],
+                    datasets: [{
+                        data: [totalHPP, grossProfit],
+                        backgroundColor: ['#FFA500', '#006B54'],
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = ctx.raw;
+                                    const perc = ((val / totalSales) * 100).toFixed(2);
+                                    return `${ctx.label}: ${formatRupiah(val)} (${perc}%)`;
+                                }
+                            }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // ==================== FITUR ARUS KAS ====================
+        function calculateCashFlow(salesData, purchasesData) {
+            let income = 0;
+            let expense = 0;
+            salesData.forEach(trx => {
+                income += trx.paidAmount || 0;
+            });
+            purchasesData.forEach(trx => {
+                expense += trx.paidAmount || 0;
+            });
+            const net = income - expense;
+            return { income, expense, net };
+        }
+
+        async function renderCashFlowChart(salesData, purchasesData, start, end) {
+            const ctx = document.getElementById('cashFlowChart').getContext('2d');
+            if (cashFlowChartInstance) cashFlowChartInstance.destroy();
+            const monthMap = new Map();
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
+                const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                monthMap.set(monthKey, { income: 0, expense: 0 });
+            }
+            salesData.forEach(trx => {
+                const date = new Date(trx.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                if (monthMap.has(monthKey)) {
+                    monthMap.get(monthKey).income += trx.paidAmount || 0;
+                }
+            });
+            purchasesData.forEach(trx => {
+                const date = new Date(trx.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                if (monthMap.has(monthKey)) {
+                    monthMap.get(monthKey).expense += trx.paidAmount || 0;
+                }
+            });
+            const labels = Array.from(monthMap.keys()).sort();
+            const incomeData = labels.map(m => monthMap.get(m).income);
+            const expenseData = labels.map(m => monthMap.get(m).expense);
+            cashFlowChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Pemasukan',
+                            data: incomeData,
+                            backgroundColor: '#006B54',
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Pengeluaran',
+                            data: expenseData,
+                            backgroundColor: '#FF6B6B',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => formatRupiah(ctx.raw)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: (val) => formatRupiah(val)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== FITUR BUNDLE ====================
+        async function loadBundles() {
+            return new Promise((resolve, reject) => {
+                if (!db) { resolve(); return; }
+                const tx = db.transaction(['bundles'], 'readonly');
+                const store = tx.objectStore('bundles');
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    bundles = request.result || [];
+                    resolve();
+                };
+                request.onerror = reject;
+            });
+        }
+
+        function aggregateBundleSales(salesData) {
+            const bundleMap = {};
+            salesData.forEach(trx => {
+                if (!trx.items) return;
+                trx.items.forEach(item => {
+                    if (item.isBundle && item.bundleId) {
+                        const bundleId = item.bundleId;
+                        if (!bundleMap[bundleId]) {
+                            const bundle = bundles.find(b => b.id === bundleId);
+                            bundleMap[bundleId] = { 
+                                bundleId, 
+                                bundleName: item.itemName, 
+                                totalQty: 0, 
+                                totalRevenue: 0,
+                                components: bundle ? bundle.components : (item.components || [])
+                            };
+                        }
+                        bundleMap[bundleId].totalQty += item.qty;
+                        bundleMap[bundleId].totalRevenue += item.subtotal;
+                    }
+                });
+            });
+            return Object.values(bundleMap);
+        }
+
+        function renderBundleTable(bundleSales) {
+            const tbody = document.getElementById('bundleTableBody');
+            if (!bundleSales || bundleSales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Tidak ada data bundle</td></tr>';
+                return;
+            }
+            let html = '';
+            bundleSales.forEach(b => {
+                const komponen = b.components.map(c => {
+                    const item = productMap[c.itemId];
+                    return item ? `${item.name} x${c.qty}` : '';
+                }).filter(Boolean).join(', ');
+                html += `<tr>
+                    <td>${b.bundleName}</td>
+                    <td>${b.totalQty}</td>
+                    <td>${formatRupiah(b.totalRevenue)}</td>
+                    <td>${komponen}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ==================== LOAD DATA UTAMA ====================
+        async function loadData() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const method = document.getElementById('paymentMethod').value;
+            if (!start || !end) { alert('Pilih tanggal mulai dan akhir'); return; }
+            if (new Date(start) > new Date(end)) { alert('Tanggal akhir harus setelah tanggal mulai'); return; }
+            try {
+                if (!db) await initDB();
+                salesData = await fetchSales(start, end, method);
+                let purchasesData = [];
+                try {
+                    purchasesData = await fetchPurchases(start, end);
+                } catch (e) {
+                    console.warn('Gagal mengambil data pembelian', e);
+                }
+                const summary = calculateSummary(salesData);
+                document.getElementById('totalSales').textContent = formatRupiah(summary.totalSales);
+                document.getElementById('totalTransactions').textContent = summary.totalTransactions;
+                document.getElementById('averageTransaction').textContent = formatRupiah(summary.average);
+                document.getElementById('totalOutstanding').textContent = formatRupiah(summary.totalOutstanding);
+                renderChart(salesData, start, end);
+                renderTable(salesData);
+                productAggregatedData = aggregateProductSales(salesData);
+                renderProductTable(productAggregatedData);
+                const categoryData = aggregateCategorySales(salesData);
+                renderCategoryChart(categoryData);
+                const pl = calculateProfitLoss(salesData);
+                document.getElementById('pl-total-sales').textContent = formatRupiah(pl.totalSales);
+                document.getElementById('pl-total-discount').textContent = formatRupiah(pl.totalDiscount);
+                document.getElementById('pl-total-tax').textContent = formatRupiah(pl.totalTax);
+                document.getElementById('pl-hpp').textContent = formatRupiah(pl.totalHPP);
+                document.getElementById('pl-gross-profit').textContent = formatRupiah(pl.grossProfit);
+                renderProfitLossChart(pl);
+                const cf = calculateCashFlow(salesData, purchasesData);
+                document.getElementById('cf-income').textContent = formatRupiah(cf.income);
+                document.getElementById('cf-expense').textContent = formatRupiah(cf.expense);
+                document.getElementById('cf-net').textContent = formatRupiah(cf.net);
+                await renderCashFlowChart(salesData, purchasesData, start, end);
+
+                // ===== BUNDLE =====
+                await loadBundles();
+                bundleSalesData = aggregateBundleSales(salesData);
+                renderBundleTable(bundleSalesData);
+            } catch (error) {
+                console.error(error);
+                alert('Gagal memuat data.');
+            }
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        window.onload = async () => {
+            setDefaultDates();
+            try {
+                await initDB();
+                const sessionOk = await checkSession();
+                if (!sessionOk) return;
+                await loadProducts();
+                await loadCategoriesAndItems();
+                await loadBundles();
+                await loadData();
+                initProductTableSort();
+                document.querySelector('.sidebar button').classList.add('active');
+            } catch (error) {
+                console.error(error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="6" class="error-message">Gagal mengakses database.</td></tr>`;
+            }
+        };
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
