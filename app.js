@@ -2012,8 +2012,14 @@ function processBarcode() {
     if (!barcode) return;
 
     console.log('Processing barcode:', barcode);
+    const barcodeLower = barcode.toLowerCase(); // <-- ubah ke lowercase
 
-    let item = kasirItems.find(i => i.code === barcode || i.barcode === barcode);
+    // Cari item berdasarkan kode atau barcode (case insensitive)
+    let item = kasirItems.find(i => 
+        (i.code && i.code.toLowerCase() === barcodeLower) || 
+        (i.barcode && i.barcode.toLowerCase() === barcodeLower)
+    );
+
     if (item) {
         addToCart(item, 1, null, 0);
         input.value = '';
@@ -2021,9 +2027,12 @@ function processBarcode() {
         return;
     }
 
+    // Cari di konversi satuan (unitConversions)
     for (let it of kasirItems) {
         if (it.unitConversions && Array.isArray(it.unitConversions)) {
-            const conv = it.unitConversions.find(c => c.barcode === barcode);
+            const conv = it.unitConversions.find(c => 
+                c.barcode && c.barcode.toLowerCase() === barcodeLower
+            );
             if (conv) {
                 addToCart(it, 1, conv, 0);
                 input.value = '';
@@ -2033,6 +2042,7 @@ function processBarcode() {
         }
     }
 
+    // Jika barcode 13 digit (format timbangan), parsing seperti biasa
     if (barcode.length === 13) {
         const flex = barcode.substr(0, barcodeConfig.flexLength);
         if (flex !== barcodeConfig.flexValue) {
@@ -2047,6 +2057,7 @@ function processBarcode() {
         const weightGram = parseInt(weightStr, 10);
 
         if (!isNaN(weightGram) && weightGram > 0) {
+            // Cari item berdasarkan kode (case sensitive? kode produk biasanya angka/huruf, lebih baik case insensitive juga)
             item = kasirItems.find(i => i.code === productCode && i.isWeighable === true);
             if (item) {
                 const qtyKg = weightGram / 1000;
