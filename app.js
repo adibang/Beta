@@ -2242,10 +2242,10 @@ function addOutstandingToCart() {
 
 // ==================== FUNGSI PEMBAYARAN (REVISI) ====================
 function resetPaymentPage() {
-    document.getElementById('payment-cash').value = '';
-    document.getElementById('payment-card').value = '';
-    document.getElementById('payment-transfer').value = '';
-    document.getElementById('payment-ewallet').value = '';
+    document.getElementById('payment-cash').value = '0';
+    document.getElementById('payment-card').value = '0';
+    document.getElementById('payment-transfer').value = '0';
+    document.getElementById('payment-ewallet').value = '0';
     document.getElementById('payment-total').textContent = 'Rp 0';
     document.getElementById('payment-grand-total').textContent = 'Rp 0';
     document.getElementById('change-amount').textContent = 'Kembalian: Rp 0';
@@ -2297,10 +2297,10 @@ function closePaymentPage() {
 function updatePaymentSummary() {
     console.log('updatePaymentSummary dipanggil');
     const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
-    const cash = parseFloat(document.getElementById('payment-cash')?.value) ||;
-    const card = parseFloat(document.getElementById('payment-card')?.value) ||;
-    const transfer = parseFloat(document.getElementById('payment-transfer')?.value) ||;
-    const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) ||;
+    const cash = parseFloat(document.getElementById('payment-cash')?.value) || 0;
+    const card = parseFloat(document.getElementById('payment-card')?.value) || 0;
+    const transfer = parseFloat(document.getElementById('payment-transfer')?.value) || 0;
+    const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) || 0;
     const paidTotal = cash + card + transfer + ewallet;
 
     const grandTotalEl = document.getElementById('payment-grand-total');
@@ -2331,10 +2331,10 @@ async function processPayment(autoPrint = false) {
     }
 
     const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
-    const cash = parseFloat(document.getElementById('payment-cash')?.value) ||;
-    const card = parseFloat(document.getElementById('payment-card')?.value) ||;
-    const transfer = parseFloat(document.getElementById('payment-transfer')?.value) ||;
-    const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) ||;
+    const cash = parseFloat(document.getElementById('payment-cash')?.value) || 0;
+    const card = parseFloat(document.getElementById('payment-card')?.value) || 0;
+    const transfer = parseFloat(document.getElementById('payment-transfer')?.value) || 0;
+    const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) || 0;
 
     const paidTotal = cash + card + transfer + ewallet;
     const shortage = total - paidTotal;
@@ -2498,10 +2498,10 @@ async function executePayment(paidTotal, outstandingAdded) {
         if (pendingPayments.length > 0) {
             payments = pendingPayments;
         } else {
-            const cash = parseFloat(document.getElementById('payment-cash')?.value) ||;
-            const card = parseFloat(document.getElementById('payment-card')?.value) ||;
-            const transfer = parseFloat(document.getElementById('payment-transfer')?.value) ||;
-            const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) ||;
+            const cash = parseFloat(document.getElementById('payment-cash')?.value) || 0;
+            const card = parseFloat(document.getElementById('payment-card')?.value) || 0;
+            const transfer = parseFloat(document.getElementById('payment-transfer')?.value) || 0;
+            const ewallet = parseFloat(document.getElementById('payment-ewallet')?.value) || 0;
             if (cash > 0) payments.push({ method: 'cash', amount: cash });
             if (card > 0) payments.push({ method: 'card', amount: card });
             if (transfer > 0) payments.push({ method: 'transfer', amount: transfer });
