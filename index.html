@@ -1659,12 +1659,14 @@
             </div>
         </div>
         <!-- Grup SISTEM -->
+        <!-- Grup SISTEM -->
         <div class="menu-group" id="menu-sistem">
             <div class="menu-header" onclick="toggleSubMenu(this)">
                 <span class="menu-title">SISTEM</span>
                 <span class="arrow">></span>
             </div>
             <div class="sub-menu">
+                <!-- Tombol Export Data (sudah ada) -->
                 <button onclick="exportData(); closeSubMenu(this);">
                     <svg class="icon" viewBox="0 0 24 24">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -1673,6 +1675,7 @@
                     </svg>
                     <span>Export Data</span>
                 </button>
+                <!-- Tombol Import Data (sudah ada) -->
                 <button onclick="importData(); closeSubMenu(this);">
                     <svg class="icon" viewBox="0 0 24 24">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -1680,6 +1683,24 @@
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                     <span>Import Data</span>
+                </button>
+                <!-- ===== TOMBOL BARU: EXPORT HARGA ===== -->
+                <button onclick="exportPrices(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Export Harga</span>
+                </button>
+                <!-- ===== TOMBOL BARU: IMPORT HARGA ===== -->
+                <button onclick="importPrices(); closeSubMenu(this);">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Import Harga</span>
                 </button>
             </div>
         </div>
