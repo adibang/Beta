@@ -1043,6 +1043,122 @@ async function saveReceiptConfig() {
     }
 }
 
+// ==================== TAMBAHAN: EXPORT/IMPORT HARGA ====================
+async function exportPrices() {
+    if (!currentUser || !currentUser.permissions || !currentUser.permissions.includes('menu-sistem')) {
+        showNotification('Anda tidak memiliki akses', 'error');
+        return;
+    }
+    try {
+        const items = kasirItems.map(item => ({
+            id: item.id,
+            code: item.code,
+            name: item.name,
+            hargaDasar: item.hargaDasar || 0,
+            hargaJual: item.hargaJual || 0,
+            unitConversions: item.unitConversions ? item.unitConversions.map(u => ({
+                id: u.id,
+                unit: u.unit,
+                value: u.value,
+                basePrice: u.basePrice || 0,
+                sellPrice: u.sellPrice || 0
+            })) : []
+        }));
+        const dataStr = JSON.stringify(items, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `harga-produk-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showNotification('Data harga berhasil diekspor', 'success');
+    } catch (error) {
+        showNotification('Gagal ekspor: ' + error.message, 'error');
+    }
+}
+
+async function importPrices() {
+    if (!currentUser || !currentUser.permissions || !currentUser.permissions.includes('menu-sistem')) {
+        showNotification('Anda tidak memiliki akses', 'error');
+        return;
+    }
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) { resolve(false); return; }
+            showLoading('Mengimpor harga...');
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (!Array.isArray(imported)) {
+                        throw new Error('File tidak valid: bukan array');
+                    }
+                    let updatedCount = 0;
+                    for (const imp of imported) {
+                        // Cari item berdasarkan id, jika tidak ada cari berdasarkan code
+                        let item = null;
+                        if (imp.id) {
+                            item = kasirItems.find(i => i.id == imp.id);
+                        }
+                        if (!item && imp.code) {
+                            item = kasirItems.find(i => i.code === imp.code);
+                        }
+                        if (item) {
+                            // Update harga dasar dan jual
+                            if (imp.hargaDasar !== undefined) item.hargaDasar = imp.hargaDasar;
+                            if (imp.hargaJual !== undefined) item.hargaJual = imp.hargaJual;
+
+                            // Update konversi satuan jika ada
+                            if (imp.unitConversions && Array.isArray(imp.unitConversions) && item.unitConversions) {
+                                for (const impUnit of imp.unitConversions) {
+                                    const targetUnit = item.unitConversions.find(u => u.id == impUnit.id);
+                                    if (targetUnit) {
+                                        if (impUnit.basePrice !== undefined) targetUnit.basePrice = impUnit.basePrice;
+                                        if (impUnit.sellPrice !== undefined) targetUnit.sellPrice = impUnit.sellPrice;
+                                    }
+                                }
+                            }
+                            item.updatedAt = new Date().toISOString();
+                            await dbPut(STORES.KASIR_ITEMS, item);
+                            updatedCount++;
+                        }
+                    }
+                    await loadKasirItems();
+                    if (document.getElementById('transaksi-page').style.display === 'block') {
+                        renderProductList();
+                    }
+                    showNotification(`Harga diupdate untuk ${updatedCount} item`, 'success');
+                    resolve(true);
+                } catch (error) {
+                    showNotification('Gagal import: ' + error.message, 'error');
+                    resolve(false);
+                } finally {
+                    hideLoading();
+                }
+            };
+            reader.onerror = () => {
+                showNotification('Gagal membaca file', 'error');
+                hideLoading();
+                resolve(false);
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    });
+}
+
+// Expose ke global
+window.exportPrices = exportPrices;
+window.importPrices = importPrices;
+// ==================== AKHIR TAMBAHAN ====================
+
 function showSettingsModal() {
     if (!currentUser || !currentUser.permissions || !currentUser.permissions.includes('menu-master')) {
         showNotification('Anda tidak memiliki akses ke pengaturan', 'error');
@@ -1059,6 +1175,17 @@ function showSettingsModal() {
             <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#ff6b6b;color:white;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #ff6b6b;" onclick="clearAllData()">${icons.delete} Hapus Semua Data</button>
             <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#dc3545;color:white;font-weight:600;margin-top:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dc3545;" onclick="forceResetDatabase()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Force Reset Database</button>
         </div>
+
+        <!-- ===== TAMBAHAN: Manajemen Harga ===== -->
+        <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
+            <div style="color:#333333;margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px;">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Manajemen Harga
+            </div>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="exportPrices()">${icons.upload} Export Harga</button>
+            <button style="width:100%;padding:12px;border:none;border-radius:15px;background:#006B54;color:white;font-weight:600;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #006B54;" onclick="importPrices()">${icons.download} Import Harga</button>
+        </div>
+        <!-- ===== AKHIR TAMBAHAN ===== -->
+
         <div style="margin-bottom:20px; border-top:1px solid #ddd; padding-top:20px;">
             <div style="color:#333333;margin-bottom:15px;font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;">
                 <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#006B54;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Konfigurasi Barcode Timbangan
