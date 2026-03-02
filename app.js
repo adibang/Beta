@@ -3341,11 +3341,28 @@ function closePendingCodeModal() {
 
 async function confirmSaveDraft() {
     const pendingCode = document.getElementById('pending-code-input').value.trim();
+    
+    // Jika user tidak mengisi kode, generate kode default
+    let finalCode = pendingCode;
+    if (!finalCode) {
+        finalCode = `Pending ${new Date().toLocaleString()}`;
+    }
+    
+    // Validasi keunikan kode pending
+    const isDuplicate = pendingTransactions.some(t => 
+        t.pendingCode && t.pendingCode.toLowerCase() === finalCode.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+        showNotification('Kode/Nama pending sudah digunakan. Silakan gunakan kode lain.', 'error');
+        return;
+    }
+    
     closePendingCodeModal();
 
     const total = cart.reduce((sum, c) => sum + c.subtotal, 0);
     const transactionData = {
-        pendingCode: pendingCode || `Pending ${new Date().toLocaleString()}`,
+        pendingCode: finalCode,
         cart: cart.map(c => ({
             itemId: c.item.id,
             itemName: c.item.name,
@@ -3363,6 +3380,7 @@ async function confirmSaveDraft() {
         total: total,
         createdAt: new Date().toISOString()
     };
+    
     try {
         showLoading();
         await savePendingTransaction(transactionData);
@@ -3388,6 +3406,33 @@ async function confirmSaveDraft() {
         showNotification('Gagal menyimpan draft: ' + error.message, 'error');
     } finally {
         hideLoading();
+    }
+}
+
+// Tambahkan fungsi ini untuk validasi real-time (opsional)
+function validatePendingCode(input) {
+    const code = input.value.trim();
+    const errorElement = document.getElementById('pending-code-error');
+    
+    if (!errorElement) return;
+    
+    if (!code) {
+        errorElement.textContent = '';
+        return;
+    }
+    
+    const isDuplicate = pendingTransactions.some(t => 
+        t.pendingCode && t.pendingCode.toLowerCase() === code.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+        errorElement.textContent = 'Kode ini sudah digunakan.';
+        errorElement.style.color = '#dc3545';
+        document.querySelector('#pending-code-modal .btn-primary').disabled = true;
+    } else {
+        errorElement.textContent = 'Kode tersedia.';
+        errorElement.style.color = '#28a745';
+        document.querySelector('#pending-code-modal .btn-primary').disabled = false;
     }
 }
 
