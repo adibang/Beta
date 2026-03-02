@@ -3366,6 +3366,23 @@ async function confirmSaveDraft() {
     try {
         showLoading();
         await savePendingTransaction(transactionData);
+        
+        // Kosongkan keranjang setelah draft tersimpan
+        cart = [];
+        selectedCustomer = null;
+        document.getElementById('customer-badge').style.display = 'none';
+        saveCartToLocalStorage();
+        renderCartPage();
+        updatePiutangButtonCart();
+
+        // Jika sedang di halaman cart, kembali ke halaman transaksi
+        if (document.getElementById('cart-page').style.display === 'block') {
+            closeCartPage();
+        } else {
+            // Jika di halaman transaksi, perbarui daftar produk
+            renderProductList();
+        }
+
         showNotification('Transaksi disimpan sebagai draft', 'success');
     } catch (error) {
         showNotification('Gagal menyimpan draft: ' + error.message, 'error');
