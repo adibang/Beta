@@ -86,7 +86,7 @@ window.addEventListener('appinstalled', (evt) => {
     deferredPrompt = null;
 });
 
-// ==================== DEFINISI STORES DAN VERSI DATABASE (salin dari app.js) ====================
+// ==================== DEFINISI STORES DAN VERSI DATABASE ====================
 const STORES = {
     SETTINGS: 'settings',
     APP_STATE: 'appState',
@@ -121,43 +121,56 @@ let gisInited = false;
 let driveBackupInterval = null;
 let backupList = [];
 
-// Fungsi untuk memuat Google API
-function loadGoogleAPI() {
-    console.log('loadGoogleAPI called');
-    // Cek apakah sudah ada
-    if (typeof gapi !== 'undefined') {
-        console.log('gapi already loaded');
-        initializeGapiClient();
+// Fungsi notifikasi fallback (menggunakan alert jika showNotification tidak tersedia)
+function safeNotify(message, type = 'info') {
+    if (typeof showNotification === 'function') {
+        showNotification(message, type);
     } else {
-        const script1 = document.createElement('script');
-        script1.src = 'https://apis.google.com/js/api.js';
-        script1.onload = () => {
-            console.log('Google API script loaded');
-            initializeGapiClient();
-        };
-        script1.onerror = () => {
-            console.error('Failed to load Google API script');
-            showNotification('Gagal memuat Google API. Periksa koneksi internet.', 'error');
-        };
-        document.head.appendChild(script1);
+        alert(message);
     }
+}
 
-    if (typeof google !== 'undefined' && google.accounts) {
-        console.log('GIS already loaded');
-        initializeGisClient();
-    } else {
-        const script2 = document.createElement('script');
-        script2.src = 'https://accounts.google.com/gsi/client';
-        script2.onload = () => {
-            console.log('GIS script loaded');
-            initializeGisClient();
-        };
-        script2.onerror = () => {
-            console.error('Failed to load GIS script');
-            showNotification('Gagal memuat Google Identity Services.', 'error');
-        };
-        document.head.appendChild(script2);
+// Fungsi loading fallback
+function safeLoading(message) {
+    if (typeof showLoading === 'function') {
+        showLoading(message);
     }
+}
+
+function safeHideLoading() {
+    if (typeof hideLoading === 'function') {
+        hideLoading();
+    }
+}
+
+// Fungsi play sound fallback (diam saja jika tidak ada)
+function safePlaySuccess() {
+    if (typeof playSuccessSound === 'function') playSuccessSound();
+}
+function safePlayError() {
+    if (typeof playErrorSound === 'function') playErrorSound();
+}
+
+// ==================== GOOGLE API LOAD ====================
+function loadGoogleAPI() {
+    console.log('Loading Google API...');
+    const script1 = document.createElement('script');
+    script1.src = 'https://apis.google.com/js/api.js';
+    script1.onload = initializeGapiClient;
+    script1.onerror = () => {
+        console.error('Gagal memuat api.js');
+        safeNotify('Gagal memuat Google API. Periksa koneksi internet.', 'error');
+    };
+    document.head.appendChild(script1);
+
+    const script2 = document.createElement('script');
+    script2.src = 'https://accounts.google.com/gsi/client';
+    script2.onload = initializeGisClient;
+    script2.onerror = () => {
+        console.error('Gagal memuat gsi/client');
+        safeNotify('Gagal memuat Google Identity Services.', 'error');
+    };
+    document.head.appendChild(script2);
 }
 
 async function initializeGapiClient() {
@@ -170,8 +183,8 @@ async function initializeGapiClient() {
         console.log('GAPI client initialized');
         checkSavedToken();
     } catch (error) {
-        console.error('Error initializing GAPI client:', error);
-        showNotification('Gagal menginisialisasi Google API: ' + error.message, 'error');
+        console.error('GAPI init error:', error);
+        safeNotify('Gagal inisialisasi Google API: ' + error.message, 'error');
     }
 }
 
@@ -185,8 +198,8 @@ function initializeGisClient() {
         gisInited = true;
         console.log('GIS client initialized');
     } catch (error) {
-        console.error('Error initializing GIS client:', error);
-        showNotification('Gagal menginisialisasi Google Identity: ' + error.message, 'error');
+        console.error('GIS init error:', error);
+        safeNotify('Gagal inisialisasi Google Identity: ' + error.message, 'error');
     }
 }
 
@@ -205,17 +218,21 @@ function saveTokenToStorage(response) {
 function getSavedToken() {
     const tokenStr = localStorage.getItem('googleDriveToken');
     if (!tokenStr) return null;
-    const token = JSON.parse(tokenStr);
-    if (token.expiry_time && Date.now() > token.expiry_time) {
-        localStorage.removeItem('googleDriveToken');
+    try {
+        const token = JSON.parse(tokenStr);
+        if (token.expiry_time && Date.now() > token.expiry_time) {
+            localStorage.removeItem('googleDriveToken');
+            return null;
+        }
+        return token;
+    } catch (e) {
         return null;
     }
-    return token;
 }
 
 function checkSavedToken() {
     const token = getSavedToken();
-    if (token) {
+    if (token && gapi.client) {
         gapi.client.setToken(token);
         updateDriveUI(true, token);
         loadBackupList();
@@ -223,33 +240,35 @@ function checkSavedToken() {
     }
 }
 
+// ==================== FUNGSI UTAMA ====================
 function connectGoogleDrive() {
-    console.log('connectGoogleDrive called');
-    // Tampilkan notifikasi bahwa proses dimulai
-    showNotification('Menghubungkan ke Google Drive...', 'info');
+    console.log('connectGoogleDrive dipanggil');
+    // Ubah teks tombol sebagai feedback
+    const connectBtn = document.getElementById('drive-connect-btn');
+    if (connectBtn) {
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = 'Menghubungkan...';
+    }
 
     if (!gapiInited || !gisInited) {
-        console.warn('API not ready yet. gapiInited:', gapiInited, 'gisInited:', gisInited);
-        showNotification('Google API masih loading, tunggu sebentar...', 'warning');
-        // Coba muat ulang API jika belum siap
-        if (!gapiInited && !gisInited) {
-            loadGoogleAPI();
+        safeNotify('Google API masih loading, tunggu sebentar...', 'warning');
+        console.log('gapiInited:', gapiInited, 'gisInited:', gisInited);
+        // Kembalikan tombol
+        if (connectBtn) {
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = 'Hubungkan';
         }
         return;
     }
 
-    // Pastikan tokenClient sudah ada
-    if (!tokenClient) {
-        console.error('tokenClient not initialized');
-        showNotification('Token client belum siap. Coba refresh halaman.', 'error');
-        return;
-    }
-
     tokenClient.callback = async (response) => {
-        console.log('OAuth callback received', response);
+        console.log('OAuth callback', response);
         if (response.error) {
-            console.error('OAuth error:', response.error);
-            showNotification('Gagal connect: ' + response.error, 'error');
+            safeNotify('Gagal connect: ' + response.error, 'error');
+            if (connectBtn) {
+                connectBtn.disabled = false;
+                connectBtn.innerHTML = 'Hubungkan';
+            }
             return;
         }
         
@@ -259,15 +278,20 @@ function connectGoogleDrive() {
         updateDriveUI(true, response);
         loadBackupList();
         startAutoBackup();
-        showNotification('Berhasil terhubung ke Google Drive', 'success');
+        safeNotify('Berhasil terhubung ke Google Drive', 'success');
+        safePlaySuccess();
+        // Tombol akan disembunyikan oleh updateDriveUI
     };
 
-    // Minta akses token
     try {
         tokenClient.requestAccessToken({ prompt: 'consent' });
     } catch (error) {
-        console.error('Error requesting access token:', error);
-        showNotification('Gagal meminta token: ' + error.message, 'error');
+        console.error('Error requestAccessToken:', error);
+        safeNotify('Gagal meminta token: ' + error.message, 'error');
+        if (connectBtn) {
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = 'Hubungkan';
+        }
     }
 }
 
@@ -277,10 +301,10 @@ function disconnectGoogleDrive() {
         localStorage.removeItem('driveSettings');
         localStorage.removeItem('driveFolderId');
         localStorage.removeItem('lastBackup');
-        gapi.client.setToken(null);
+        if (gapi.client) gapi.client.setToken(null);
         updateDriveUI(false);
         stopAutoBackup();
-        showNotification('Koneksi Google Drive diputuskan', 'info');
+        safeNotify('Koneksi Google Drive diputuskan', 'info');
     }
 }
 
@@ -309,8 +333,10 @@ function updateDriveUI(connected, token = null) {
     const backupListEl = document.getElementById('backup-list');
     
     if (connected) {
-        statusEl.innerHTML = '🟢 Terhubung ke Google Drive';
-        statusEl.style.color = '#006B54';
+        if (statusEl) {
+            statusEl.innerHTML = '🟢 Terhubung ke Google Drive';
+            statusEl.style.color = '#006B54';
+        }
         if (connectBtn) connectBtn.style.display = 'none';
         if (disconnectBtn) disconnectBtn.style.display = 'inline-flex';
         if (settingsDiv) {
@@ -320,13 +346,21 @@ function updateDriveUI(connected, token = null) {
         loadDriveSettings();
         const lastBackup = localStorage.getItem('lastBackup');
         if (lastBackup && lastBackupEl) {
-            const info = JSON.parse(lastBackup);
-            lastBackupEl.innerHTML = `📁 ${info.fileName}<br>🕒 ${info.time} • 💾 ${info.size}`;
+            try {
+                const info = JSON.parse(lastBackup);
+                lastBackupEl.innerHTML = `📁 ${info.fileName}<br>🕒 ${info.time} • 💾 ${info.size}`;
+            } catch (e) {}
         }
     } else {
-        statusEl.innerHTML = '🔴 Tidak terhubung';
-        statusEl.style.color = '#999';
-        if (connectBtn) connectBtn.style.display = 'inline-flex';
+        if (statusEl) {
+            statusEl.innerHTML = '🔴 Tidak terhubung';
+            statusEl.style.color = '#999';
+        }
+        if (connectBtn) {
+            connectBtn.style.display = 'inline-flex';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = 'Hubungkan';
+        }
         if (disconnectBtn) disconnectBtn.style.display = 'none';
         if (settingsDiv) {
             settingsDiv.style.opacity = '0.5';
@@ -363,28 +397,33 @@ async function createBackupFolder() {
         }
     } catch (error) {
         console.error('Error creating folder:', error);
-        showNotification('Gagal membuat folder backup: ' + error.message, 'error');
+        safeNotify('Gagal membuat folder backup: ' + error.message, 'error');
         return null;
     }
 }
 
 async function manualBackup() {
-    showLoading('Menyiapkan backup...');
+    safeLoading('Menyiapkan backup...');
     try {
         await performBackup();
-        showNotification('Backup berhasil disimpan ke Google Drive!', 'success');
-        playSuccessSound();
+        safeNotify('Backup berhasil disimpan ke Google Drive!', 'success');
+        safePlaySuccess();
         refreshBackupList();
     } catch (error) {
         console.error('Backup error:', error);
-        showNotification('Gagal backup: ' + error.message, 'error');
-        playErrorSound();
+        safeNotify('Gagal backup: ' + error.message, 'error');
+        safePlayError();
     } finally {
-        hideLoading();
+        safeHideLoading();
     }
 }
 
 async function performBackup() {
+    // Pastikan fungsi dbGetAll ada
+    if (typeof dbGetAll !== 'function') {
+        throw new Error('Fungsi database tidak tersedia');
+    }
+
     const backupData = {
         kasirCategories: await dbGetAll(STORES.KASIR_CATEGORIES),
         kasirItems: await dbGetAll(STORES.KASIR_ITEMS),
@@ -536,7 +575,7 @@ async function restoreBackup(fileId, fileName) {
         return;
     }
 
-    showLoading('Mendownload backup...');
+    safeLoading('Mendownload backup...');
     try {
         const response = await gapi.client.drive.files.get({
             fileId: fileId,
@@ -549,7 +588,11 @@ async function restoreBackup(fileId, fileName) {
             throw new Error('File backup tidak valid');
         }
 
-        showLoading('Merestore data...');
+        safeLoading('Merestore data...');
+
+        if (typeof dbClear !== 'function' || typeof dbPut !== 'function') {
+            throw new Error('Fungsi database tidak tersedia');
+        }
 
         await dbClear(STORES.KASIR_CATEGORIES);
         await dbClear(STORES.KASIR_ITEMS);
@@ -584,25 +627,26 @@ async function restoreBackup(fileId, fileName) {
         await putAll(STORES.BUNDLES, backupData.bundles);
         await putAll(STORES.SETTINGS, backupData.settings);
 
-        await loadKasirCategories();
-        await loadKasirItems();
-        await loadKasirSatuan();
-        await loadCustomers();
-        await loadSuppliers();
-        await loadPendingTransactions();
-        await loadUsers();
-        await loadRoles();
-        await loadBundles();
-        await updateDashboard();
+        // Panggil fungsi refresh dari app.js jika ada
+        if (typeof loadKasirCategories === 'function') await loadKasirCategories();
+        if (typeof loadKasirItems === 'function') await loadKasirItems();
+        if (typeof loadKasirSatuan === 'function') await loadKasirSatuan();
+        if (typeof loadCustomers === 'function') await loadCustomers();
+        if (typeof loadSuppliers === 'function') await loadSuppliers();
+        if (typeof loadPendingTransactions === 'function') await loadPendingTransactions();
+        if (typeof loadUsers === 'function') await loadUsers();
+        if (typeof loadRoles === 'function') await loadRoles();
+        if (typeof loadBundles === 'function') await loadBundles();
+        if (typeof updateDashboard === 'function') await updateDashboard();
 
-        showNotification('Restore berhasil! Aplikasi akan direfresh.', 'success');
+        safeNotify('Restore berhasil! Aplikasi akan direfresh.', 'success');
         setTimeout(() => window.location.reload(), 2000);
 
     } catch (error) {
         console.error('Error restoring backup:', error);
-        showNotification('Gagal restore: ' + error.message, 'error');
+        safeNotify('Gagal restore: ' + error.message, 'error');
     } finally {
-        hideLoading();
+        safeHideLoading();
     }
 }
 
@@ -625,7 +669,7 @@ function saveDriveSettings() {
     stopAutoBackup();
     startAutoBackup();
     
-    showNotification('Pengaturan backup disimpan', 'success');
+    safeNotify('Pengaturan backup disimpan', 'success');
 }
 
 function loadDriveSettings() {
@@ -634,9 +678,11 @@ function loadDriveSettings() {
     const intervalSelect = document.getElementById('backup-interval');
     
     if (saved && autoBackupCheck && intervalSelect) {
-        const settings = JSON.parse(saved);
-        autoBackupCheck.checked = settings.autoBackupTransaction || false;
-        intervalSelect.value = settings.backupInterval || 1;
+        try {
+            const settings = JSON.parse(saved);
+            autoBackupCheck.checked = settings.autoBackupTransaction || false;
+            intervalSelect.value = settings.backupInterval || 1;
+        } catch (e) {}
     } else {
         if (autoBackupCheck) autoBackupCheck.checked = false;
         if (intervalSelect) intervalSelect.value = 1;
@@ -670,7 +716,7 @@ function openDriveFolder() {
     if (folderId) {
         window.open(`https://drive.google.com/drive/folders/${folderId}`, '_blank');
     } else {
-        showNotification('Folder backup belum dibuat', 'warning');
+        safeNotify('Folder backup belum dibuat', 'warning');
     }
 }
 
@@ -680,23 +726,25 @@ function startAutoBackup() {
     const settings = localStorage.getItem('driveSettings');
     if (!settings) return;
     
-    const { backupInterval } = JSON.parse(settings);
-    const intervalMs = backupInterval * 60 * 60 * 1000;
-    
-    driveBackupInterval = setInterval(async () => {
-        console.log('Running auto backup...');
-        const token = getSavedToken();
-        if (!token) {
-            console.log('No token, skipping auto backup');
-            return;
-        }
-        try {
-            await performBackup();
-            console.log('Auto backup successful');
-        } catch (error) {
-            console.error('Auto backup failed:', error);
-        }
-    }, intervalMs);
+    try {
+        const { backupInterval } = JSON.parse(settings);
+        const intervalMs = backupInterval * 60 * 60 * 1000;
+        
+        driveBackupInterval = setInterval(async () => {
+            console.log('Running auto backup...');
+            const token = getSavedToken();
+            if (!token) {
+                console.log('No token, skipping auto backup');
+                return;
+            }
+            try {
+                await performBackup();
+                console.log('Auto backup successful');
+            } catch (error) {
+                console.error('Auto backup failed:', error);
+            }
+        }, intervalMs);
+    } catch (e) {}
 }
 
 function stopAutoBackup() {
@@ -706,32 +754,31 @@ function stopAutoBackup() {
     }
 }
 
-// Simpan referensi ke fungsi processPayment asli
-const originalProcessPayment = window.processPayment;
-
-// Override processPayment untuk menambahkan auto backup
-window.processPayment = async function(...args) {
-    const result = await originalProcessPayment(...args);
-    
-    const settings = localStorage.getItem('driveSettings');
-    if (settings) {
-        const { autoBackupTransaction } = JSON.parse(settings);
-        const token = getSavedToken();
-        if (autoBackupTransaction && token) {
-            setTimeout(() => {
-                performBackup().catch(console.error);
-            }, 1500);
+// Override processPayment untuk auto backup
+if (typeof window.processPayment === 'function') {
+    const originalProcessPayment = window.processPayment;
+    window.processPayment = async function(...args) {
+        const result = await originalProcessPayment(...args);
+        
+        const settings = localStorage.getItem('driveSettings');
+        if (settings) {
+            try {
+                const { autoBackupTransaction } = JSON.parse(settings);
+                const token = getSavedToken();
+                if (autoBackupTransaction && token) {
+                    setTimeout(() => {
+                        performBackup().catch(console.error);
+                    }, 1500);
+                }
+            } catch (e) {}
         }
-    }
-    
-    return result;
-};
+        
+        return result;
+    };
+}
 
-// Muat Google API segera setelah halaman dimuat
-window.addEventListener('load', function() {
-    console.log('Window loaded, loading Google API...');
-    loadGoogleAPI();
-});
+// Muat Google API segera setelah skrip ini dijalankan
+loadGoogleAPI();
 
 // Ekspos fungsi ke global
 window.connectGoogleDrive = connectGoogleDrive;
