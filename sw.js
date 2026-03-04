@@ -1,13 +1,21 @@
-const CACHE_NAME = 'MUDA-cache-v3';
+const CACHE_NAME = 'muda-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/relasi.html',
-  '/pembelian.html',
-  '/laporan.html',
-  '/master-data.html',
-  '/admin-panel.html',
-  '/manifest.json',
+  '/beta/',
+  '/beta/index.html',
+  '/beta/relasi.html',
+  '/beta/pembelian.html',
+  '/beta/laporan.html',
+  '/beta/master-data.html',
+  '/beta/admin-panel.html',
+  '/beta/manifest.json',
+  '/beta/icons/72.png',
+  '/beta/icons/96.png',
+  '/beta/icons/128.png',
+  '/beta/icons/144.png',
+  '/beta/icons/152.png',
+  '/beta/icons/192.png',
+  '/beta/icons/384.png',
+  '/beta/icons/512.png',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
