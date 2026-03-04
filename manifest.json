@@ -1,6 +1,6 @@
 {
-  "name": "POS Kasir",
-  "short_name": "POS Kasir",
+  "name": "MUDA",
+  "short_name": "MUDA",
   "description": "Aplikasi Point of Sale (POS) yang lengkap dan mudah digunakan.",
   "start_url": "/index.html",
   "display": "standalone",
