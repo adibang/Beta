@@ -88,7 +88,7 @@ window.addEventListener('appinstalled', (evt) => {
 
 // ==================== GOOGLE DRIVE BACKUP CONFIGURATION ====================
 const DRIVE_CONFIG = {
-    CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+    CLIENT_ID: '408769468812-550ik05h5nahcpq2kb749jso2gkokccq.apps.googleusercontent.com',
     API_KEY: '',
     SCOPES: 'https://www.googleapis.com/auth/drive.file',
     DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
