@@ -104,7 +104,7 @@ const STORES = {
 };
 
 // Versi database (harus sama dengan di app.js)
-const DB_VERSION = 20;
+const DB_VERSION = 22;
 
 // ==================== GOOGLE DRIVE BACKUP CONFIGURATION ====================
 const DRIVE_CONFIG = {
